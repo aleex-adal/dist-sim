@@ -4,7 +4,7 @@ import express = require('express');
 const app: express.Application = express();
 
 app.get('/', function (req, res) {
-  nodeTest(res);
+  nodeTest(res); 
 });
 
 app.listen(3000, function () {
