@@ -3,7 +3,9 @@ import node from "./node";
 export default class network {
     nodeMap: Map<number, node> = new Map();
 
-    constructor(numNodes: number) {
+    constructor(numNodes: number, dataSliceSize: number) {
+
+        // populate connection arrays
         let connectArr: number[] = [];
         let connectArr2: number[] = [];
 
@@ -12,16 +14,19 @@ export default class network {
             connectArr2.push(i);
         }
 
+        // populate nodes
         for (let i = 0; i < numNodes; i++) {
             let n = new node(i);
             let i1: number;
 
+            // ensure that connections are not repeated
             do {
                 i1 = Math.round(Math.random() * (connectArr.length - 1));
             } while (i1 == i)
 
             let c1 = connectArr.splice(i1, 1)[0];
 
+            // 50% chacne of having second connection
             if (Math.round(Math.random())) {
                 let i2;
 
@@ -36,6 +41,12 @@ export default class network {
                 n.connections.push(c1);
             }
 
+            // populate node's data slice
+            let initialSlice = i;
+            for (let i = 0; i < dataSliceSize; i++) {
+                n.dataSlice.set(initialSlice + i, initialSlice + i);
+            }
+
             this.nodeMap.set(n.id, n);
         }
         console.log(this.nodeMap);
@@ -43,6 +54,14 @@ export default class network {
 
     getNode(id: number): node {
         let ret = this.nodeMap.get(id);
+        return !!ret ? ret : new node(-1);
+    }
+
+    getRandomNode(): node {
+        let ret = this.nodeMap.get(Math.round(Math.random() * (this.nodeMap.size - 1)));
+        if (ret === undefined) {
+            console.log('network: getRandomNode failed');
+        }
         return !!ret ? ret : new node(-1);
     }
 }

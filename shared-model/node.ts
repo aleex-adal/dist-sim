@@ -6,9 +6,21 @@ export default class node {
     connections: number[] = [];
     latency: number = 1000;
     nodeMap: Map<number, node> = new Map();
+    dataSlice: Map<number, number> = new Map();
 
-    processPayload: (payload: payload) => string
-        = (payload) => payload.msg === "Hello!" ? "Hello from node " + this.id : "no response";
+    processPayload: (payload: payload) => string = 
+    (payload) => {
+        if (payload.hasOwnProperty("msg") && payload.msg === "Hello!") {
+            return "Hello from node " + this.id
+        } else if (payload.hasOwnProperty("msg")) {
+            return "no response";
+        } else if (payload.hasOwnProperty("operation")) {
+            return "whatever";
+        } else {
+            return "unknown";
+        }
+
+    };
 
     constructor(id: number) {
         this.id = id;
@@ -24,7 +36,6 @@ export default class node {
         }
 
         return this.connections.includes(payload.id) ? realNode.respond(payload) : Promise.resolve("node: this node is not connected to id " + payload.id)
-
     }
 
     respond(payload: payload): Promise<string> {
