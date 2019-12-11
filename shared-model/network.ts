@@ -1,9 +1,7 @@
 import node from "./node";
-import payload from "./payload";
 
 export default class network {
     nodeMap: Map<number, node> = new Map();
-    latency: number = 1000;
 
     constructor(numNodes: number) {
         let connectArr: number[] = [];
@@ -43,29 +41,8 @@ export default class network {
         console.log(this.nodeMap);
     }
 
-    delay(): number {
-        return Math.round(Math.random() * this.latency);
-    }
-
-    hasNode(id: number): boolean {
-        return this.nodeMap.has(id)
-    }
-
     getNode(id: number): node {
         let ret = this.nodeMap.get(id);
         return !!ret ? ret : new node(-1);
-    }
-
-    access(payload: payload): Promise<string> {
-        let p = new Promise<string>((resolve) => {
-            const delay = this.delay();
-            setTimeout(() => {
-                console.log(delay / 1000);
-                let ret = this.nodeMap.get(payload.id);
-                !!ret ? resolve(ret.respond(payload)) : resolve("network: no node found for id " + payload.id);
-            }, delay);
-        });
-        
-        return p;
     }
 }

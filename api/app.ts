@@ -10,10 +10,11 @@ app.get('/', function (req, res) {
 
 app.listen(4000, async () => {
   console.log('Example app listening on port 3000!');
-  let net: network = new network(20);
-  let node: node = net.getNode(0);
+  let nodelist: network = new network(20);
+  let firstNode: node = nodelist.getNode(0);
 
+  firstNode.findAllNodes(firstNode, nodelist);
   console.log(
-    await node.ping({id: node.connections[0], msg: "Hello!"}, net)
+    await firstNode.ping({id: firstNode.connections[0], msg: "Hello!"})
   );
 });
