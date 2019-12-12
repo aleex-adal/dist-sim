@@ -3,7 +3,7 @@ import node from "./node";
 export default class network {
     nodeMap: Map<number, node> = new Map();
 
-    constructor(numNodes: number, dataSliceSize: number) {
+    constructor(numNodes: number) {
 
         // populate connection arrays
         let connectArr: number[] = [];
@@ -42,8 +42,8 @@ export default class network {
             }
 
             // populate node's data slice
-            let initialSlice = i;
-            for (let i = 0; i < dataSliceSize; i++) {
+            let initialSlice = i * 5;
+            for (let i = 0; i < 5; i++) {
                 n.dataSlice.set(initialSlice + i, initialSlice + i);
             }
 

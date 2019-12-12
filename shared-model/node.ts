@@ -15,6 +15,7 @@ export default class node {
         } else if (payload.hasOwnProperty("msg")) {
             return "no response";
         } else if (payload.hasOwnProperty("operation")) {
+            
             return "whatever";
         } else {
             return "unknown";
