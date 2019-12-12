@@ -3,7 +3,10 @@ import node from "./node";
 export default class network {
     nodeMap: Map<number, node> = new Map();
 
-    constructor(numNodes: number) {
+    constructor(numNodes: number, dataRange?: number) {
+        if (!dataRange) {
+            dataRange = 5;
+        }
 
         // populate connection arrays
         let connectArr: number[] = [];
@@ -42,9 +45,10 @@ export default class network {
             }
 
             // populate node's data slice
-            let initialSlice = i * 5;
-            for (let i = 0; i < 5; i++) {
-                n.dataSlice.set(initialSlice + i, initialSlice + i);
+            let initialSlice = i * dataRange;
+            n.dataRange = [initialSlice, initialSlice + dataRange - 1];
+            for (let i = 0; i < dataRange; i++) {
+                n.dataSlice.set(initialSlice + i, {fruit: this.getRandomFruit(initialSlice + i), location: 'in ma head'});
             }
 
             this.nodeMap.set(n.id, n);
@@ -63,5 +67,36 @@ export default class network {
             console.log('network: getRandomNode failed');
         }
         return !!ret ? ret : new node(-1);
+    }
+
+    getRandomFruit(num: number): string {
+        const rand = Math.random();
+        let f: string;
+
+        if (rand < 0.1) {
+            f = 'apple';
+        } else if (rand < 0.2) {
+            f = 'banana';
+        } else if (rand < 0.3) {
+            f = 'cherry';
+        } else if (rand < 0.4) {
+            f = 'strawberry';
+        } else if (rand < 0.5) {
+            f = 'pineapple';
+        } else if (rand < 0.6) {
+            f = 'tomato';
+        } else if (rand < 0.7) {
+            f = 'tomahhto';
+        } else if (rand < 0.8) {
+            f = 'passionfruit';
+        } else if (rand < 0.9) {
+            f = 'grapefruit';
+        } else if (rand < 0.95) {
+            f = 'dragonfruit';
+        } else {
+            f = 'a super expensive Japanese melon';
+        }
+
+        return f;
     }
 }

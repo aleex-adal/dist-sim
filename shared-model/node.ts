@@ -6,7 +6,8 @@ export default class node {
     connections: number[] = [];
     latency: number = 1000;
     nodeMap: Map<number, node> = new Map();
-    dataSlice: Map<number, number> = new Map();
+    dataSlice: Map<number, Object> = new Map();
+    dataRange: number[] = [];
 
     processPayload: (payload: payload) => string = 
     (payload) => {
@@ -59,6 +60,60 @@ export default class node {
                 console.log('node id ' + originalNode.id + ' found node of id ' + newNode.id);
                 originalNode.nodeMap.set(newNode.id, newNode);
                 newNode.findAllNodes(originalNode, network);
+            } else {
+                return;
+            }
+        });
+    }
+
+    read(id: number | Object): Promise<Object> {
+        if (typeof id === 'number') {
+            const range = this.dataRange[1] + 1 - this.dataRange[0];
+            const targetRange = Math.floor(id / range);
+            const targetNode = targetRange / range;
+            
+            // get the shortest path
+            const path = this.shortestPath(id);
+        }
+
+        // else it's an object, non-index search
+
+        return Promise.resolve({result: 'unknown'});
+    }
+
+    shortestPath(id: number): Object {
+        const nodes: any[] = [];
+        this.nodeMap.forEach( node => {
+            if (node.id === this.id) {
+                nodes.push({id: node.id, distance: 0, visited: true});
+            } else {
+                nodes.push({id: node.id, distance: undefined, visited: false});
+            }
+        });
+
+        this.shortestPathRecursion(nodes, 0, this.nodeMap);
+        console.log(nodes);
+
+        return {};
+    }
+
+    shortestPathRecursion(nodes: any[], dist: number, nodeMap: Map<number, node>): void {
+        this.connections.forEach( id => {
+            const conn = nodes.find( (node: any) => { node.id === id; });
+            if (!conn.visited) {
+
+                if (conn.distance === undefined) {
+                    conn.distance = dist + 1;
+
+                } else if (conn.distance > dist + 1) {
+                    conn.distance = dist + 1;
+                }
+
+                const newNode = nodeMap.get(conn.id);
+                if (!!newNode) {
+                    newNode.shortestPathRecursion(nodes, dist + 1, nodeMap);
+                }
+
             } else {
                 return;
             }
