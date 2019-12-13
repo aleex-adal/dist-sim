@@ -74,6 +74,7 @@ export default class node {
             
             // get the shortest path
             const path = this.shortestPath(id);
+            console.log('shortest path to target is: ' + path);
         }
 
         // else it's an object, non-index search
@@ -81,56 +82,60 @@ export default class node {
         return Promise.resolve({result: 'unknown'});
     }
 
-    shortestPath(id: number): Object {
-        const nodes: any[] = [];
+    shortestPath(targetId: number): number[] {
+        const connMap: Map<number, {distance: any, visited: boolean, path: number[]}> = new Map();
+
         this.nodeMap.forEach( node => {
             if (node.id === this.id) {
-                nodes.push({id: node.id, distance: 0, visited: true});
+                connMap.set(node.id, {distance: 0, visited: true, path: [node.id]});
             } else {
-                nodes.push({id: node.id, distance: undefined, visited: false});
+                connMap.set(node.id, {distance: undefined, visited: false, path: []});
             }
         });
 
-        this.shortestPathRecursion(nodes, 0, this.nodeMap);
-        console.log(nodes);
-        console.log('hello!');
+        const jobQ = [this.id];
+        while (jobQ.length > 0) {
 
-        return {};
-    }
-
-    shortestPathRecursion(nodes: any[], dist: number, nodeMap: Map<number, node>): void {
-        const neighbors: node[] = [];
-        this.connections.forEach( id => {
-            const conn = nodes.find( (node: any) => node.id === id);
-            // if (!conn.visited) {
-
-                if (conn.distance === undefined) {
-                    conn.distance = dist + 1;
-
-                } else if (conn.distance > dist + 1) {
-                    conn.distance = dist + 1;
-                }
-
-                const newNode = nodeMap.get(conn.id);
-                if (!!newNode) {
-                    neighbors.push(newNode);
-                }
-
-            // } else {
-            //     return;
-            // }
-        });
-
-        const me = nodes.find( (node: any) => node.id === this.id);
-        me.visited = true;
-
-        neighbors.forEach(neighbor => {
-            const conn = nodes.find( (node: any) => neighbor.id === node.id);
-            if (!conn.visited) {
-                neighbor.shortestPathRecursion(nodes, dist + 1, nodeMap);
+            // pop current node
+            const currId = jobQ.splice(0, 1)[0];
+            
+            const preCurrConn = connMap.get(currId);
+            let currConn: {distance: any, visited: boolean, path: number[]} = {distance: -1, visited: false, path: []}
+            if (!!preCurrConn) {
+                currConn = preCurrConn;
             }
-        });
-        return;
+
+            const preCurrNode = this.nodeMap.get(currId);
+            let currNode: node = new node(-1)
+            if (!!preCurrNode) {
+                currNode = preCurrNode;
+            }
+
+            // add connections to jobQ for BFS order
+            currNode.connections.forEach( id => {
+                const nextConn = connMap.get(id);
+                if (!!nextConn && !nextConn.visited) {
+                    nextConn.distance = currConn.distance + 1;
+                    nextConn.path = currConn.path.concat([id]);
+                    jobQ.push(id);
+                }
+            });
+
+            // mark currConn as visited
+            currConn.visited = true;
+            if (currId === targetId) {
+                console.log('found target node early!');
+                break;
+            }
+        }
+
+        console.log(connMap);
+        const preRet = connMap.get(targetId);
+        let ret: number[] = [];
+        if (!!preRet) {
+            ret = preRet.path;
+        }
+        return ret;
     }
 
     delay(): number {

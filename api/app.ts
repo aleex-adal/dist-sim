@@ -10,18 +10,18 @@ app.get('/', function (req, res) {
 
 app.listen(4000, async () => {
   console.log('Example app listening on port 3000!');
-  let net: network = new network(5);
-  // let n: node = net.getRandomNode();
+  let net: network = new network(10);
+  let n: node = net.getRandomNode();
 
-  net.nodeMap = getNm();
-  let n: node = net.getNode(1);
+//   net.nodeMap = getNm();
+//   let n: node = net.getNode(1);
 
   n.findAllNodes(n, net);
   console.log(
     await n.ping({id: n.connections[0], msg: "Hello!"})
   );
 
-  n.read(8);
+  n.read(2);
 });
 
 function getRandomFruit(): string {

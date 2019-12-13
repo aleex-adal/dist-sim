@@ -14,6 +14,9 @@ export default class network {
 
         for (let i = 0; i < numNodes; i++) {
             connectArr.push(i);
+            connectArr.push(i);
+
+            connectArr2.push(i);
             connectArr2.push(i);
         }
 
@@ -25,17 +28,19 @@ export default class network {
             // ensure that connections are not repeated
             do {
                 i1 = Math.round(Math.random() * (connectArr.length - 1));
-            } while (i1 == i)
+                console.log(i1);
+            } while (connectArr[i1] == i)
 
             let c1 = connectArr.splice(i1, 1)[0];
 
-            // 50% chacne of having second connection
+            // 50% chance of having second connection
             if (Math.round(Math.random())) {
                 let i2;
 
                 do {
                     i2 = Math.round(Math.random() * (connectArr2.length - 1));
-                } while (i2 == i)
+                    console.log(i2);
+                } while (connectArr2[i2] == i && connectArr2[i2] == c1)
 
                 let c2 = connectArr2.splice(i2, 1)[0];
                 n.connections.push(c1);
