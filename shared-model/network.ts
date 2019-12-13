@@ -64,15 +64,17 @@ export default class network {
     }
 
     selfIterator(map: Map<number, node>) {
-        return Array.from(map).reduce((acc: [number, node], [key, value]) => {
-            if (value instanceof Map) { // parse the node and stringify the internal nodeMap
-                acc[key] = this.selfIterator(value);
-            } else {
-                acc[key] = value;
-            }
+        let master = [];
+        map.forEach( (val, key) => {
+            let nest = [];
+            val.nodeMap.forEach((val, key) => {
+                
+            });
+            let one = [key, ];
 
-            return acc;
-        }, {})
+        });
+
+        
     }
 
     // const res = selfIterator(myMap)
