@@ -93,14 +93,16 @@ export default class node {
 
         this.shortestPathRecursion(nodes, 0, this.nodeMap);
         console.log(nodes);
+        console.log('hello!');
 
         return {};
     }
 
     shortestPathRecursion(nodes: any[], dist: number, nodeMap: Map<number, node>): void {
+        const neighbors: node[] = [];
         this.connections.forEach( id => {
-            const conn = nodes.find( (node: any) => { node.id === id; });
-            if (!conn.visited) {
+            const conn = nodes.find( (node: any) => node.id === id);
+            // if (!conn.visited) {
 
                 if (conn.distance === undefined) {
                     conn.distance = dist + 1;
@@ -111,13 +113,24 @@ export default class node {
 
                 const newNode = nodeMap.get(conn.id);
                 if (!!newNode) {
-                    newNode.shortestPathRecursion(nodes, dist + 1, nodeMap);
+                    neighbors.push(newNode);
                 }
 
-            } else {
-                return;
+            // } else {
+            //     return;
+            // }
+        });
+
+        const me = nodes.find( (node: any) => node.id === this.id);
+        me.visited = true;
+
+        neighbors.forEach(neighbor => {
+            const conn = nodes.find( (node: any) => neighbor.id === node.id);
+            if (!conn.visited) {
+                neighbor.shortestPathRecursion(nodes, dist + 1, nodeMap);
             }
         });
+        return;
     }
 
     delay(): number {
