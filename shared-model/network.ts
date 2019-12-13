@@ -1,4 +1,5 @@
 import node from "./node";
+import fs from 'fs';
 
 export default class network {
     nodeMap: Map<number, node> = new Map();
@@ -58,8 +59,24 @@ export default class network {
 
             this.nodeMap.set(n.id, n);
         }
-        console.log(this.nodeMap);
+        // console.log(this.nodeMap);
+        // fs.writeFileSync('out.js', JSON.stringify(Array.from(this.nodeMap.entries())));
     }
+
+    selfIterator(map: Map<number, node>) {
+        return Array.from(map).reduce((acc: [number, node], [key, value]) => {
+            if (value instanceof Map) { // parse the node and stringify the internal nodeMap
+                acc[key] = this.selfIterator(value);
+            } else {
+                acc[key] = value;
+            }
+
+            return acc;
+        }, {})
+    }
+
+    // const res = selfIterator(myMap)
+    // return JSON.stringify(res);
 
     getNode(id: number): node {
         let ret = this.nodeMap.get(id);

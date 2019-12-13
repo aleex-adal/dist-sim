@@ -24,8 +24,20 @@ export default class node {
 
     };
 
-    constructor(id: number) {
-        this.id = id;
+    constructor(id?: number, n?: node) {
+        if (id) {
+            this.id = id;
+        }
+
+        if (n) {
+            this.id = n.id;
+            this.connections = n.connections;
+            this.latency = n.latency;
+            this.nodeMap = new Map<number, node>();
+            this.dataSlice = n.dataSlice;
+            this.dataRange = n.dataRange;
+        }
+        
     }
 
     ping(payload: payload): Promise<string> {
