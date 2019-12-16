@@ -46,9 +46,6 @@ export default class node {
 
             return this.ping(payload);
         
-        } else if (payload.op === 'r' && payload.pathIndex === 0) {
-            return Promise.resolve(payload);
-
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1) {
 
             console.log('node id ' + this.id + ' received final out payload');
@@ -79,7 +76,7 @@ export default class node {
             return this.ping(payload);
 
 
-        } else if (payload.op === 'u' && payload.pathIndex === 0) {
+        } else if (payload.pathIndex === 0) {
             return Promise.resolve(payload);
 
         } else {
@@ -168,6 +165,37 @@ export default class node {
         // else it's an object, non-index search
 
         return Promise.resolve({result: 'unknown'});
+    }
+
+    insert(item: Object | Object[]) {
+        /**
+         * search all nodes for highest data range and itemId
+         * if there is room in the current data range, simply add the data to the node that owns the highest data range
+         * 
+         * if we go into the next index range,
+         * do a BFS traversal to figure out which node has the least items
+         * assign the new index range randomly among the nodes that have the least items
+         * 
+         * send the new index range along with data to the target node(s)
+         * 
+         * on the target nodes in processPayload, if the insert is successful then send a BFS signal to all nodes with target's updated
+         * datarange and number of items
+         * 
+         * 
+         */
+    }
+
+    recover() {
+        // if ping hits a node that no longer exists, use parity (one parity node per 2 data nodes)
+        // to recover the lost node
+
+        // with this method, 1 out of every 3 nodes can fail and db is 1.33x the size without safety
+        // with straight up replication, you can lose 1 out of every 2 nodes but the db is 2x the size
+    }
+
+    retry() {
+        // if any operation fails at any point in the path, track the node where it failed and retry 2 or 3 times
+        // if the same node failed all of those times, kill it and recover!
     }
 
     shortestPath(targetId: number): number[] {
