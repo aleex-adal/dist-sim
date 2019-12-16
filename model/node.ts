@@ -49,6 +49,39 @@ export default class node {
         } else if (payload.op === 'r' && payload.pathIndex === 0) {
             return Promise.resolve(payload);
 
+        } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1) {
+
+            console.log('node id ' + this.id + ' received final out payload');
+            let msg = 'successful';
+
+            if (payload.itemId < this.dataRange[0] || payload.itemId > this.dataRange[1]) {
+                msg = 'itemId ' + payload.itemId + ' was not in dataRange ' + this.dataRange;
+            }
+
+            let dbItem = this.dataSlice.get(payload.itemId);
+            if (!dbItem) {
+                msg = 'itemId ' + payload.itemId + ' was not found in database';
+            }
+
+            let changes = payload.item;
+
+            for (const key of Object.keys(changes)) {
+                dbItem[key] = changes[key];
+            }
+
+            this.dataSlice.set(payload.itemId, dbItem);
+
+            payload.msg = msg;
+            payload.item = dbItem;
+            payload.dir = 'in';
+            payload.id = payload.path[--payload.pathIndex];
+
+            return this.ping(payload);
+
+
+        } else if (payload.op === 'u' && payload.pathIndex === 0) {
+            return Promise.resolve(payload);
+
         } else {
             return Promise.resolve("unknown");
         }
@@ -111,6 +144,25 @@ export default class node {
             let pathIndex = path[0] === this.id ? 1 : 0;
             
             return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'r', itemId: itemId, dir: 'out'});
+        }
+
+        // else it's an object, non-index search
+
+        return Promise.resolve({result: 'unknown'});
+    }
+
+    update(itemId: number | Object, changes: Object): Promise<Object> {
+        if (typeof itemId === 'number') {
+            const range = this.dataRange[1] + 1 - this.dataRange[0];
+            const targetNode = Math.floor(itemId / range);
+            
+            // get the shortest path
+            const path = this.shortestPath(targetNode);
+            console.log('shortest path to target is: ' + path);
+
+            let pathIndex = path[0] === this.id ? 1 : 0;
+            
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'u', itemId: itemId, item: changes, dir: 'out'});
         }
 
         // else it's an object, non-index search
