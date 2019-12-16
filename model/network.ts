@@ -1,55 +1,42 @@
 import node from "./node";
-import fs from 'fs';
 
 export default class network {
     nodeMap: Map<number, node> = new Map();
 
+    // generates a biased graph, but apparently it's similar to real networks
+    // TODO: generate a truly random graph
     constructor(numNodes: number, dataRange?: number) {
         if (!dataRange) {
             dataRange = 5;
         }
 
-        // populate connection arrays
-        let connectArr: number[] = [];
-        let connectArr2: number[] = [];
-
-        for (let i = 0; i < numNodes; i++) {
-            connectArr.push(i);
-            connectArr.push(i);
-
-            connectArr2.push(i);
-            connectArr2.push(i);
-        }
-
         // populate nodes
         for (let i = 0; i < numNodes; i++) {
             let n = new node(i);
-            let i1: number;
 
-            // ensure that connections are not repeated
-            do {
-                i1 = Math.round(Math.random() * (connectArr.length - 1));
-                console.log(i1);
-            } while (connectArr[i1] == i)
+            if (i > 0) {
+                let connectionsToPush = [];
+    
+                // push a random first connection
+                connectionsToPush.push(
+                    Math.round(Math.random() * (this.nodeMap.size - 1))
+                );
 
-            let c1 = connectArr.splice(i1, 1)[0];
+                // 50% chance of having second connection
+                if ( i > 1 && Math.round(Math.random())) {
+                    connectionsToPush.push(
+                        Math.round(Math.random() * (this.nodeMap.size - 1))
+                    );
+                }
 
-            // 50% chance of having second connection
-            if (Math.round(Math.random())) {
-                let i2;
+                connectionsToPush.forEach( conn => {
+                    n.connections.push(conn);
 
-                do {
-                    i2 = Math.round(Math.random() * (connectArr2.length - 1));
-                    console.log(i2);
-                } while (connectArr2[i2] == i && connectArr2[i2] == c1)
-
-                let c2 = connectArr2.splice(i2, 1)[0];
-                n.connections.push(c1);
-                n.connections.push(c2);
-            } else {
-                n.connections.push(c1);
+                    // non-directed graph, directed wouldn't make sense for real networks
+                    this.nodeMap.get(conn).connections.push(n.id);  
+                });
             }
-
+            
             // populate node's data slice
             let initialSlice = i * dataRange;
             n.dataRange = [initialSlice, initialSlice + dataRange - 1];
@@ -59,26 +46,12 @@ export default class network {
 
             this.nodeMap.set(n.id, n);
         }
-        // console.log(this.nodeMap);
-        // fs.writeFileSync('out.js', JSON.stringify(Array.from(this.nodeMap.entries())));
-    }
 
-    selfIterator(map: Map<number, node>) {
-        let master = [];
-        map.forEach( (val, key) => {
-            let nest = [];
-            val.nodeMap.forEach((val, key) => {
-                
-            });
-            let one = [key, ];
-
+        // after all nodes are created, instruct all nodes to find each other
+        this.nodeMap.forEach(node => {
+            node.findAllNodes(node, this);
         });
-
-        
     }
-
-    // const res = selfIterator(myMap)
-    // return JSON.stringify(res);
 
     getNode(id: number): node {
         let ret = this.nodeMap.get(id);

@@ -1,6 +1,6 @@
-import node from '../shared-model/node';
+import node from '../model/node';
 import express = require('express');
-import network from '../shared-model/network';
+import network from '../model/network';
 
 import fs from 'fs';
 
@@ -13,21 +13,11 @@ app.get('/', function (req, res) {
 app.listen(4000, async () => {
   console.log('Example app listening on port 3000!');
   let net: network = new network(10);
-  // let n: node = net.getRandomNode();
-
-  net.nodeMap = new Map(JSON.parse(fs.readFileSync('out.js', 'utf8')));
-  console.log(net.nodeMap);
   let n: node = net.getNode(0);
-  console.log(n);
 
-
-  n = new node(undefined, n);
-  n.findAllNodes(n, net);
   console.log(
-    await n.ping({id: n.connections[0], msg: "Hello!"})
+    await n.read(36)
   );
-
-  n.read(2);
 });
 
 function getRandomFruit(): string {
