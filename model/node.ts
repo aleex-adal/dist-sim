@@ -1,5 +1,6 @@
 import network from "./network";
 import payload from "./payload";
+import DataRange from "./DataRange";
 
 export default class node {
     id: number = 0;
@@ -7,7 +8,7 @@ export default class node {
     latency: number = 1000;
     nodeMap: Map<number, node> = new Map();
     dataSlice: Map<number, Object> = new Map();
-    dataRange: number[] = [];
+    dataRange: DataRange[] = [];
 
     processPayload: (payload: payload) => Promise<Object> = 
     (payload) => {
@@ -28,10 +29,13 @@ export default class node {
         } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1) {
 
             console.log('node id ' + this.id + ' received final out payload');
-            let msg = 'successful';
+            let msg = 'itemId ' + payload.itemId + ' was not in dataRange ' + this.dataRange;
 
-            if (payload.itemId < this.dataRange[0] || payload.itemId > this.dataRange[1]) {
-                msg = 'itemId ' + payload.itemId + ' was not in dataRange ' + this.dataRange;
+            for (let i = 0; i < this.dataRange.length; i++) {
+                if (payload.itemId >= this.dataRange[i].start || payload.itemId <= this.dataRange[i].end) {
+                    msg = 'successful';
+                    break;
+                }
             }
 
             let item = this.dataSlice.get(payload.itemId);
@@ -49,10 +53,13 @@ export default class node {
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1) {
 
             console.log('node id ' + this.id + ' received final out payload');
-            let msg = 'successful';
+            let msg = 'itemId ' + payload.itemId + ' was not in dataRange ' + this.dataRange;
 
-            if (payload.itemId < this.dataRange[0] || payload.itemId > this.dataRange[1]) {
-                msg = 'itemId ' + payload.itemId + ' was not in dataRange ' + this.dataRange;
+            for (let i = 0; i < this.dataRange.length; i++) {
+                if (payload.itemId >= this.dataRange[i].start || payload.itemId <= this.dataRange[i].end) {
+                    msg = 'successful';
+                    break;
+                }
             }
 
             let dbItem = this.dataSlice.get(payload.itemId);
@@ -131,8 +138,16 @@ export default class node {
 
     read(itemId: number | Object): Promise<Object> {
         if (typeof itemId === 'number') {
-            const range = this.dataRange[1] + 1 - this.dataRange[0];
-            const targetNode = Math.floor(itemId / range);
+            let targetNode = -1;
+
+            // instead of doing this, just build a map with datarange values mapped to node
+            for (let i = 0; i < this.nodeMap.size; i++) {
+                let currNode = this.nodeMap.get(i);
+                if (currNode.dataRange[0] <= itemId && currNode.dataRange[1] >= itemId) {
+                    targetNode = currNode.id;
+                    break;
+                }
+            }
             
             // get the shortest path
             const path = this.shortestPath(targetNode);
@@ -150,8 +165,14 @@ export default class node {
 
     update(itemId: number | Object, changes: Object): Promise<Object> {
         if (typeof itemId === 'number') {
-            const range = this.dataRange[1] + 1 - this.dataRange[0];
-            const targetNode = Math.floor(itemId / range);
+            let targetNode = -1;
+            for (let i = 0; i < this.nodeMap.size; i++) {
+                let currNode = this.nodeMap.get(i);
+                if (currNode.dataRange[0] <= itemId && currNode.dataRange[1] >= itemId) {
+                    targetNode = currNode.id;
+                    break;
+                }
+            }
             
             // get the shortest path
             const path = this.shortestPath(targetNode);
@@ -167,11 +188,30 @@ export default class node {
         return Promise.resolve({result: 'unknown'});
     }
 
-    insert(item: Object | Object[]) {
+    insert(item: Object | Object[]): Promise<Object> {
         /**
-         * search all nodes for highest data range and itemId
-         * if there is room in the current data range, simply add the data to the node that owns the highest data range
-         * 
+        * search all nodes for highest data range and itemId
+        * if there is room in the current data range, simply add the data to the node that owns the highest data range
+        */
+        
+        let highestDataRange = 0;
+        let highestItemId = 0;
+        let highestNodeId = 0;
+        for (let i = 0; i < this.nodeMap.size; i++) {
+            let currNode = this.nodeMap.get(i);
+            if (currNode.dataRange[1] > highestDataRange) {
+                highestDataRange = currNode.dataRange[1];
+                highestNodeId = currNode.id;
+            }
+        }
+
+        if (item instanceof Object && ) {
+
+        }
+
+
+
+         /**
          * if we go into the next index range,
          * do a BFS traversal to figure out which node has the least items
          * assign the new index range randomly among the nodes that have the least items
@@ -183,6 +223,7 @@ export default class node {
          * 
          * 
          */
+        return Promise.resolve({unknown: true});
     }
 
     recover() {
