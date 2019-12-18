@@ -1,13 +1,14 @@
 import node from "./node";
+import DataRange from "./DataRange";
 
 export default class network {
     nodeMap: Map<number, node> = new Map();
 
     // generates a biased graph, but apparently it's similar to real networks
     // TODO: generate a truly random graph
-    constructor(numNodes: number, dataRange?: number) {
-        if (!dataRange) {
-            dataRange = 5;
+    constructor(numNodes: number, dataRangeSize?: number) {
+        if (!dataRangeSize) {
+            dataRangeSize = 5;
         }
 
         // populate nodes
@@ -37,10 +38,18 @@ export default class network {
                 });
             }
             
-            // populate node's data slice
-            let initialSlice = i * dataRange;
-            n.dataRange = [initialSlice, initialSlice + dataRange - 1];
-            for (let i = 0; i < dataRange; i++) {
+            // populate node's initial data range metadata for use by other nodes on the network
+            let initialSlice = i * dataRangeSize;
+
+            const initialRange = new DataRange();
+            initialRange.nodeId = n.id;
+            initialRange.start = initialSlice;
+            initialRange.end = initialSlice + dataRangeSize - 1;
+            initialRange.full = true;
+            n.dataRange.push(initialRange);
+
+            // populate node's initial data
+            for (let i = 0; i < dataRangeSize; i++) {
                 n.dataSlice.set(initialSlice + i, {fruit: this.getRandomFruit(initialSlice + i), location: 'in ma head'});
             }
 
@@ -51,6 +60,9 @@ export default class network {
         this.nodeMap.forEach(node => {
             node.findAllNodes(node, this);
         });
+
+        console.log(JSON.stringify(this.nodeMap.get(1).dataRangeOrderedMap));
+
     }
 
     getNode(id: number): node {

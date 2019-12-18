@@ -1,14 +1,18 @@
 import network from "./network";
 import payload from "./payload";
 import DataRange from "./DataRange";
+import OrderedMap from "./OrderedMap";
 
 export default class node {
     id: number = 0;
     connections: number[] = [];
     latency: number = 1000;
-    nodeMap: Map<number, node> = new Map();
-    dataSlice: Map<number, Object> = new Map();
+    nodeMap: Map<number, node> = new Map(); // nodeId => node
+    dataRangeOrderedMap: OrderedMap = new OrderedMap(new Map()); // dataRange.start => dataRange
+
     dataRange: DataRange[] = [];
+    dataSlice: Map<number, Object> = new Map();
+
 
     processPayload: (payload: payload) => Promise<Object> = 
     (payload) => {
@@ -29,20 +33,17 @@ export default class node {
         } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1) {
 
             console.log('node id ' + this.id + ' received final out payload');
-            let msg = 'itemId ' + payload.itemId + ' was not in dataRange ' + this.dataRange;
+            let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
             for (let i = 0; i < this.dataRange.length; i++) {
-                if (payload.itemId >= this.dataRange[i].start || payload.itemId <= this.dataRange[i].end) {
+                if (payload.itemId >= this.dataRange[i].start && payload.itemId <= this.dataRange[i].end) {
                     msg = 'successful';
                     break;
                 }
             }
 
             let item = this.dataSlice.get(payload.itemId);
-            if (!item) {
-                msg = 'itemId ' + payload.itemId + ' was not found in database';
-            }
-
+            
             payload.msg = msg;
             payload.item = item;
             payload.dir = 'in';
@@ -53,27 +54,25 @@ export default class node {
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1) {
 
             console.log('node id ' + this.id + ' received final out payload');
-            let msg = 'itemId ' + payload.itemId + ' was not in dataRange ' + this.dataRange;
+            let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
             for (let i = 0; i < this.dataRange.length; i++) {
-                if (payload.itemId >= this.dataRange[i].start || payload.itemId <= this.dataRange[i].end) {
+                if (payload.itemId >= this.dataRange[i].start && payload.itemId <= this.dataRange[i].end) {
                     msg = 'successful';
                     break;
                 }
             }
 
             let dbItem = this.dataSlice.get(payload.itemId);
-            if (!dbItem) {
-                msg = 'itemId ' + payload.itemId + ' was not found in database';
+            if (dbItem) {
+                let changes = payload.item;
+
+                for (const key of Object.keys(changes)) {
+                    dbItem[key] = changes[key];
+                }
+
+                this.dataSlice.set(payload.itemId, dbItem);
             }
-
-            let changes = payload.item;
-
-            for (const key of Object.keys(changes)) {
-                dbItem[key] = changes[key];
-            }
-
-            this.dataSlice.set(payload.itemId, dbItem);
 
             payload.msg = msg;
             payload.item = dbItem;
@@ -124,11 +123,23 @@ export default class node {
         );
     }
 
+    // set data that nodes will need to know about other nodes
+    // includes node object metadata (not the actual data) and data range information
+    // (which node has which range of id's? Is that range full?)
     findAllNodes(originalNode: node, network: network): void {
         this.connections.forEach(id => {
             let newNode = network.getNode(id);
             if (newNode.id >= 0 && !originalNode.nodeMap.has(newNode.id)) {
                 originalNode.nodeMap.set(newNode.id, newNode);
+                newNode.dataRange.forEach( range => {
+                    originalNode.dataRangeOrderedMap.set(range.start, JSON.parse(JSON.stringify(range)));
+                    if (originalNode.id === 0) {
+                        console.log(range);
+                        console.log(JSON.stringify(originalNode.dataRangeOrderedMap));
+                        console.log(JSON.stringify(originalNode.dataRangeOrderedMap.map.get(1)));
+
+                    }
+                });
                 newNode.findAllNodes(originalNode, network);
             } else {
                 return;
@@ -140,13 +151,25 @@ export default class node {
         if (typeof itemId === 'number') {
             let targetNode = -1;
 
-            // instead of doing this, just build a map with datarange values mapped to node
-            for (let i = 0; i < this.nodeMap.size; i++) {
-                let currNode = this.nodeMap.get(i);
-                if (currNode.dataRange[0] <= itemId && currNode.dataRange[1] >= itemId) {
-                    targetNode = currNode.id;
+            // If we didn't have dataRange start values mapped to node id's, this would be n-squared
+            // because for each node, we need to check each data range (nodes can have multiple data ranges)
+
+            // TODO: make binary search instead of linear
+            const highest = this.dataRangeOrderedMap.keysInOrder.length - 1;
+            for (let i = highest; i >= 0; i--) {
+                let currDataRangeStart = this.dataRangeOrderedMap.keysInOrder[i];
+                console.log('current data range start: ' + currDataRangeStart);
+                if (currDataRangeStart <= itemId) {
+                    targetNode = this.dataRangeOrderedMap.get(currDataRangeStart).nodeId;
+                    console.log('target node: ' + targetNode);
+                    console.log(this.nodeMap.get(targetNode).dataRange[0]);
+                    console.log(JSON.stringify(this.nodeMap.get(targetNode).dataSlice));
                     break;
                 }
+            }
+
+            if (!targetNode) {
+                return Promise.resolve({msg: 'requested id does not exist in db'});
             }
             
             // get the shortest path
@@ -166,12 +189,22 @@ export default class node {
     update(itemId: number | Object, changes: Object): Promise<Object> {
         if (typeof itemId === 'number') {
             let targetNode = -1;
-            for (let i = 0; i < this.nodeMap.size; i++) {
-                let currNode = this.nodeMap.get(i);
-                if (currNode.dataRange[0] <= itemId && currNode.dataRange[1] >= itemId) {
-                    targetNode = currNode.id;
+
+            // If we didn't have dataRange start values mapped to node id's, this would be n-squared
+            // because for each node, we need to check each data range (nodes can have multiple data ranges)
+
+            // TODO: make binary search instead of linear
+            const highest = this.dataRangeOrderedMap.keysInOrder.length - 1;
+            for (let i = highest; i >= 0; i--) {
+                let currDataRangeStart = this.dataRangeOrderedMap.keysInOrder[i];
+                if (currDataRangeStart <= itemId) {
+                    targetNode = this.dataRangeOrderedMap.get(currDataRangeStart).nodeId;
                     break;
                 }
+            }
+
+            if (!targetNode) {
+                return Promise.resolve({msg: 'requested id does not exist in db'});
             }
             
             // get the shortest path
@@ -190,24 +223,24 @@ export default class node {
 
     insert(item: Object | Object[]): Promise<Object> {
         /**
-        * search all nodes for highest data range and itemId
-        * if there is room in the current data range, simply add the data to the node that owns the highest data range
+        * search all nodes for highest data range
+        * if there is room in that data range, simply add the data to the node that owns the highest data range
         */
         
-        let highestDataRange = 0;
-        let highestItemId = 0;
-        let highestNodeId = 0;
-        for (let i = 0; i < this.nodeMap.size; i++) {
-            let currNode = this.nodeMap.get(i);
-            if (currNode.dataRange[1] > highestDataRange) {
-                highestDataRange = currNode.dataRange[1];
-                highestNodeId = currNode.id;
-            }
-        }
+        // let highestDataRange = 0;
+        // let highestItemId = 0;
+        // let highestNodeId = 0;
+        // for (let i = 0; i < this.nodeMap.size; i++) {
+        //     let currNode = this.nodeMap.get(i);
+        //     if (currNode.dataRange[1] > highestDataRange) {
+        //         highestDataRange = currNode.dataRange[1];
+        //         highestNodeId = currNode.id;
+        //     }
+        // }
 
-        if (item instanceof Object && ) {
+        // if (item instanceof Object && ) {
 
-        }
+        // }
 
 
 
@@ -220,6 +253,8 @@ export default class node {
          * 
          * on the target nodes in processPayload, if the insert is successful then send a BFS signal to all nodes with target's updated
          * datarange and number of items
+         * 
+         * TODO: Define some way to update dataRange maps of all nodes upon insert or deletion
          * 
          * 
          */
