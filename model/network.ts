@@ -60,9 +60,6 @@ export default class network {
         this.nodeMap.forEach(node => {
             node.findAllNodes(node, this);
         });
-
-        console.log(JSON.stringify(this.nodeMap.get(1).dataRangeOrderedMap));
-
     }
 
     getNode(id: number): node {

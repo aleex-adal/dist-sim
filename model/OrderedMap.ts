@@ -5,9 +5,9 @@ export default class OrderedMap {
     keysInOrder: number[] = [];
 
     set(num: number, dRange: DataRange): void {
-        this.map.set(num, JSON.parse(JSON.stringify(dRange)));
+        this.map.set(num, dRange);
         this.keysInOrder.push(num);
-        this.keysInOrder.sort(); // TODO: push to correct index so sort is unneccesary
+        this.keysInOrder.sort((a, b) => a - b); // TODO: push to correct index so sort is unneccesary
     }
 
     get(num: number): DataRange {

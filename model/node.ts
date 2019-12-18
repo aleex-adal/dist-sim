@@ -132,13 +132,7 @@ export default class node {
             if (newNode.id >= 0 && !originalNode.nodeMap.has(newNode.id)) {
                 originalNode.nodeMap.set(newNode.id, newNode);
                 newNode.dataRange.forEach( range => {
-                    originalNode.dataRangeOrderedMap.set(range.start, JSON.parse(JSON.stringify(range)));
-                    if (originalNode.id === 0) {
-                        console.log(range);
-                        console.log(JSON.stringify(originalNode.dataRangeOrderedMap));
-                        console.log(JSON.stringify(originalNode.dataRangeOrderedMap.map.get(1)));
-
-                    }
+                    originalNode.dataRangeOrderedMap.set(range.start, range);
                 });
                 newNode.findAllNodes(originalNode, network);
             } else {
@@ -152,18 +146,14 @@ export default class node {
             let targetNode = -1;
 
             // If we didn't have dataRange start values mapped to node id's, this would be n-squared
-            // because for each node, we need to check each data range (nodes can have multiple data ranges)
+            // because for each node, we need to check each data range (and nodes can have multiple data ranges)
 
             // TODO: make binary search instead of linear
             const highest = this.dataRangeOrderedMap.keysInOrder.length - 1;
             for (let i = highest; i >= 0; i--) {
                 let currDataRangeStart = this.dataRangeOrderedMap.keysInOrder[i];
-                console.log('current data range start: ' + currDataRangeStart);
                 if (currDataRangeStart <= itemId) {
                     targetNode = this.dataRangeOrderedMap.get(currDataRangeStart).nodeId;
-                    console.log('target node: ' + targetNode);
-                    console.log(this.nodeMap.get(targetNode).dataRange[0]);
-                    console.log(JSON.stringify(this.nodeMap.get(targetNode).dataSlice));
                     break;
                 }
             }
@@ -191,7 +181,7 @@ export default class node {
             let targetNode = -1;
 
             // If we didn't have dataRange start values mapped to node id's, this would be n-squared
-            // because for each node, we need to check each data range (nodes can have multiple data ranges)
+            // because for each node, we need to check each data range (and nodes can have multiple data ranges)
 
             // TODO: make binary search instead of linear
             const highest = this.dataRangeOrderedMap.keysInOrder.length - 1;

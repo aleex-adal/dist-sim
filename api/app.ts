@@ -3,6 +3,8 @@ import express = require('express');
 import network from '../model/network';
 
 import fs from 'fs';
+import OrderedMap from '../model/OrderedMap';
+import DataRange from '../model/DataRange';
 
 const app: express.Application = express();
 
