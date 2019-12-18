@@ -111,7 +111,7 @@ export default class node {
                     }
                 });
 
-            } else {
+            } else { // we're creating a new data range on this node
                 this.dataRange.push(payload.newRange);
                 this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
 
@@ -122,16 +122,26 @@ export default class node {
                 changedDataRange = payload.newRange;
             }
 
+            /**
+             * if we filled the current range or created a new one,
+             * let all other nodes know
+             */
             if (changedDataRange) {
                 const connMap = this.shortestPath(0, true);
+                let realConnMap: Map<number, {distance: any, visited: boolean, path: number[]}>;
                 if (connMap instanceof Map) {
-                    const realConnMap = connMap;
-                    realConnMap.forEach( (val, key) => {
-                        this.ping({id: payload.path[payload.pathIndex], path: payload.path, pathIndex: pathIndex, op: 'updateDataRange', dir: 'out'});
-
-                    });
+                    realConnMap = connMap;
                 }
-                this.broadcastChanges(changedDataRange);
+
+                console.log(realConnMap);
+                realConnMap.forEach( (val, key) => {
+                    if (key !== this.id) {
+                        console.log('shortest path to changedDataRange target is: ' + val.path);
+
+                        let pathIndex = val.path[0] === this.id ? 1 : 0;
+                        this.ping({id: val.path[pathIndex], path: val.path, pathIndex: pathIndex, op: 'updateDataRange', newRange: changedDataRange, dir: 'out'});
+                    }
+                }); 
             }
 
             payload.msg = broadcast;
@@ -140,6 +150,13 @@ export default class node {
             payload.id = payload.path[--payload.pathIndex];
 
             return this.ping(payload);
+
+        } else if (payload.op === 'updateDataRange' && payload.pathIndex === payload.path.length - 1) {
+            console.log('node id ' + this.id + ' received final updateDataRange op' + payload.newRange);
+            
+            // this might be more complicated than that
+            // this.dataRangeOrderedMap.set(payload.newRange.start, )
+
 
         } else if (payload.pathIndex === 0) {
             return Promise.resolve(payload);

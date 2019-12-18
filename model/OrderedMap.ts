@@ -5,9 +5,14 @@ export default class OrderedMap {
     keysInOrder: number[] = [];
 
     set(num: number, dRange: DataRange): void {
+
+        // only push and re-sort if creating new map entry
+        if (!this.map.has(num)) {
+            this.keysInOrder.push(num);
+            this.keysInOrder.sort((a, b) => a - b); // TODO: push to correct index so sort is unneccesary
+        }
+
         this.map.set(num, dRange);
-        this.keysInOrder.push(num);
-        this.keysInOrder.sort((a, b) => a - b); // TODO: push to correct index so sort is unneccesary
     }
 
     get(num: number): DataRange {
