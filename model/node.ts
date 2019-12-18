@@ -82,6 +82,65 @@ export default class node {
             return this.ping(payload);
 
 
+        } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1) {
+
+            console.log('node id ' + this.id + ' received final out payload');
+            let broadcast = 'successful';
+            let retItem = {};
+
+            let changedDataRange: DataRange = undefined;
+
+            if (!payload.hasOwnProperty('newRange')) {
+                let highestItemId = 0;
+
+                this.dataSlice.forEach( (val, key) => {
+                    if (key > highestItemId) {
+                        highestItemId = key;
+                    }
+                });
+
+                payload.item.id  = highestItemId + 1;
+
+                retItem = this.dataSlice.set(payload.item.id, payload.item);
+                this.dataRange.forEach( range => {
+                    if (payload.item.id === range.end) {
+                        range.full = true;
+                        broadcast = 'range that starts at ' + range.start + ' is now full';
+
+                        changedDataRange = range;
+                    }
+                });
+
+            } else {
+                this.dataRange.push(payload.newRange);
+                this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
+
+                payload.item.id = payload.newRange.start;
+                retItem = this.dataSlice.set(payload.item.id, payload.item);
+                broadcast = 'new range ' + payload.newRange + ' added';
+
+                changedDataRange = payload.newRange;
+            }
+
+            if (changedDataRange) {
+                const connMap = this.shortestPath(0, true);
+                if (connMap instanceof Map) {
+                    const realConnMap = connMap;
+                    realConnMap.forEach( (val, key) => {
+                        this.ping({id: payload.path[payload.pathIndex], path: payload.path, pathIndex: pathIndex, op: 'updateDataRange', dir: 'out'});
+
+                    });
+                }
+                this.broadcastChanges(changedDataRange);
+            }
+
+            payload.msg = broadcast;
+            payload.item = retItem;
+            payload.dir = 'in';
+            payload.id = payload.path[--payload.pathIndex];
+
+            return this.ping(payload);
+
         } else if (payload.pathIndex === 0) {
             return Promise.resolve(payload);
 
@@ -101,7 +160,7 @@ export default class node {
         if (this.id < 0) { return Promise.resolve('node: I am an invalid node!') }
         const nodeToPing = this.nodeMap.get(payload.id);
 
-        if (!nodeToPing) {
+        if (!nodeToPing || payload.id === this.id) {
             return Promise.resolve('invalid node id requested');
         }
 
@@ -163,7 +222,11 @@ export default class node {
             }
             
             // get the shortest path
-            const path = this.shortestPath(targetNode);
+            let prePath = this.shortestPath(targetNode, false);
+            let path: number[];
+            if (!(prePath instanceof Map)) {
+                path = prePath;
+            }
             console.log('shortest path to target is: ' + path);
 
             let pathIndex = path[0] === this.id ? 1 : 0;
@@ -198,7 +261,11 @@ export default class node {
             }
             
             // get the shortest path
-            const path = this.shortestPath(targetNode);
+            let prePath = this.shortestPath(targetNode, false);
+            let path: number[];
+            if (!(prePath instanceof Map)) {
+                path = prePath;
+            }
             console.log('shortest path to target is: ' + path);
 
             let pathIndex = path[0] === this.id ? 1 : 0;
@@ -212,33 +279,53 @@ export default class node {
     }
 
     insert(item: Object | Object[]): Promise<Object> {
+        let targetNode = -1;
+
         /**
         * search all nodes for highest data range
         * if there is room in that data range, simply add the data to the node that owns the highest data range
         */
         
-        // let highestDataRange = 0;
-        // let highestItemId = 0;
-        // let highestNodeId = 0;
-        // for (let i = 0; i < this.nodeMap.size; i++) {
-        //     let currNode = this.nodeMap.get(i);
-        //     if (currNode.dataRange[1] > highestDataRange) {
-        //         highestDataRange = currNode.dataRange[1];
-        //         highestNodeId = currNode.id;
-        //     }
-        // }
+        const highest = this.dataRangeOrderedMap.keysInOrder[this.dataRangeOrderedMap.keysInOrder.length - 1];
+        const highestRange = this.dataRangeOrderedMap.get(highest);
+        if (highestRange && !highestRange.full) {
+            targetNode = highestRange.nodeId;
+            // get the shortest path
+            let prePath = this.shortestPath(targetNode, false);
+            let path: number[];
+            if (!(prePath instanceof Map)) {
+                path = prePath;
+            }
+            console.log('shortest path to target is: ' + path);
+ 
+            let pathIndex = path[0] === this.id ? 1 : 0;
+             
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, dir: 'out'});
+        }
 
-        // if (item instanceof Object && ) {
+        // else assign the new datarange to a node at random
+        // TODO: add numItems to nodes and choose the node with the least number of items
 
-        // }
+        // TODO: when insert is successful, SEND BFS SIGNAL TO ALL NODES TO UPDATE THEIR DATA RANGE ORDEREDMAPS
+        const newRange = new DataRange();
+        newRange.start = highestRange.end + 1;
+        newRange.end = newRange.start + this.dataRange[0].end - this.dataRange[0].start;
+        newRange.full = false;
 
+        targetNode = Math.round(Math.random() * (this.nodeMap.size - 1));
 
+        // get the shortest path
+        let prePath = this.shortestPath(targetNode, false);
+        let path: number[];
+        if (!(prePath instanceof Map)) {
+            path = prePath;
+        }
+        console.log('shortest path to target is: ' + path);
 
-         /**
-         * if we go into the next index range,
-         * do a BFS traversal to figure out which node has the least items
-         * assign the new index range randomly among the nodes that have the least items
-         * 
+        let pathIndex = path[0] === this.id ? 1 : 0;
+         
+        return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, newRange: newRange, dir: 'out'});
+        /**
          * send the new index range along with data to the target node(s)
          * 
          * on the target nodes in processPayload, if the insert is successful then send a BFS signal to all nodes with target's updated
@@ -248,7 +335,6 @@ export default class node {
          * 
          * 
          */
-        return Promise.resolve({unknown: true});
     }
 
     recover() {
@@ -264,7 +350,7 @@ export default class node {
         // if the same node failed all of those times, kill it and recover!
     }
 
-    shortestPath(targetId: number): number[] {
+    shortestPath(targetId: number, returnConnMap?: boolean): number[] | Map<number, {distance: any, visited: boolean, path: number[]}> {
         const connMap: Map<number, {distance: any, visited: boolean, path: number[]}> = new Map();
 
         this.nodeMap.forEach( node => {
@@ -310,12 +396,16 @@ export default class node {
             }
         }
 
-        const preRet = connMap.get(targetId);
-        let ret: number[] = [];
-        if (!!preRet) {
-            ret = preRet.path;
+        if (returnConnMap) {
+            return connMap;
+        } else {
+            const preRet = connMap.get(targetId);
+            let ret: number[] = [];
+            if (!!preRet) {
+                ret = preRet.path;
+            }
+            return ret;
         }
-        return ret;
     }
 
     delay(): number {
