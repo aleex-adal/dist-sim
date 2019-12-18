@@ -8,7 +8,7 @@ export default class node {
     connections: number[] = [];
     latency: number = 1000;
     nodeMap: Map<number, node> = new Map(); // nodeId => node
-    dataRangeOrderedMap: OrderedMap = new OrderedMap(new Map()); // dataRange.start => dataRange
+    dataRangeOrderedMap: OrderedMap = new OrderedMap(); // dataRange.start => dataRange
 
     dataRange: DataRange[] = [];
     dataSlice: Map<number, Object> = new Map();
