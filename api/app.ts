@@ -35,4 +35,32 @@ app.listen(4000, async () => {
       await n.insert({ fruit: 'I just inserted this fruit AGAIN yo'})
     );
   }, 5000);
+
+  // this is probably the time to use lamport clocks... heh
+  setTimeout( async () => {
+    console.log(
+      await n.insert({ fruit: '3'})
+    );
+  }, 5000);
+
+  // this is probably the time to use lamport clocks... heh
+  setTimeout( async () => {
+    console.log(
+      await n.insert({ fruit: '4'})
+    );
+  }, 5000);
+
+  // this is probably the time to use lamport clocks... heh
+  setTimeout( async () => {
+    console.log(
+      await n.insert({ fruit: '5'})
+    );
+  }, 5000);
+
+  // this is probably the time to use lamport clocks... heh
+  setTimeout( async () => {
+    console.log(
+      await n.insert({ fruit: '6'})
+    );
+  }, 5000);
 });
