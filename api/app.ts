@@ -62,5 +62,5 @@ app.listen(4000, async () => {
     console.log(
       await n.insert({ fruit: '6'})
     );
-  }, 5000); 
+  }, 5000);
 });
