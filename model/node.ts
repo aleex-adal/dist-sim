@@ -6,13 +6,32 @@ import OrderedMap from "./OrderedMap";
 export default class node {
     id: number = 0;
     connections: number[] = [];
-    latency: number = 1000;
+    latency: number = 100;
     nodeMap: Map<number, node> = new Map(); // nodeId => node
     dataRangeOrderedMap: OrderedMap = new OrderedMap(); // dataRange.start => dataRange
 
     dataRange: DataRange[] = [];
     dataSlice: Map<number, Object> = new Map();
 
+    /**
+     * TODO: add vector clocks
+     * test that vector clocks function correctly
+     * 
+     * change insert so that all nodes will point to the same one (least id) when adding a new dataRange
+     * 
+     * 
+     * for concurrent inserts, objects should be stored in arrival order and should not be "switched". if a stale node accidentally sends too many inserts
+     * to one node the target node will know because it's data range will fill up and the source node will not be sending a new data range. At that point
+     * it should determine a new node with least data and forward inserts to the new node.
+     * 
+     * test stale node write with concurrent updated node write. Target node should read vector clocks and if stale write arrives second, it should
+     * read that the stale vector clock is smaller than the updated write's vector clock, not do the stale write and update stale vector clock to be
+     * more recent than the node that was previously updated
+     * 
+     * The above test cases should work when the instructions come from the same node concurrently because the vector clocks from the source node
+     * will indicate proper order. Cool!
+     * 
+     */
 
     processPayload: (payload: payload) => Promise<Object> = 
     (payload) => {
@@ -30,7 +49,7 @@ export default class node {
             // console.log('node id ' + this.id + ' received payload');
             return this.ping(payload);
 
-        } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1) {
+        } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
 
             console.log('node id ' + this.id + ' received final out payload');
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
@@ -51,9 +70,8 @@ export default class node {
 
             return this.ping(payload);
         
-        } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1) {
+        } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
 
-            console.log('node id ' + this.id + ' received final out payload');
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
             for (let i = 0; i < this.dataRange.length; i++) {
@@ -68,6 +86,10 @@ export default class node {
                 let changes = payload.item;
 
                 for (const key of Object.keys(changes)) {
+                    if (key === 'deleted' && changes[key] === true) {
+                        dbItem = {deleted: true};
+                        break;
+                    }
                     dbItem[key] = changes[key];
                 }
 
@@ -82,7 +104,7 @@ export default class node {
             return this.ping(payload);
 
 
-        } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1) {
+        } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
 
             // console.log('node id ' + this.id + ' received final out payload');
             let broadcast = 'successful';
@@ -104,7 +126,7 @@ export default class node {
                 this.dataSlice.set(payload.itemId, payload.item);
                 retItem = this.dataSlice.get(payload.itemId);
                 this.dataRange.forEach( range => {
-                    if (payload.item.id === range.end) {
+                    if (payload.itemId === range.end) {
                         range.full = true;
                         broadcast = 'range that starts at ' + range.start + ' is now full';
 
@@ -136,12 +158,15 @@ export default class node {
                 }
 
                 realConnMap.forEach( (val, key) => {
-                    if (key !== this.id) {
+                    if (key !== this.id && key !== payload.path[0]) {
                         let pathIndex = val.path[0] === this.id ? 1 : 0;
                         this.ping({id: val.path[pathIndex], path: val.path, pathIndex: pathIndex, op: 'updateDataRange', newRange: changedDataRange, dir: 'out'});
                     }
-                }); 
+                });
             }
+
+            // changed dataRange must be updated immediately on sending node in case it is sending another insert
+            payload.newRange = changedDataRange;
 
             payload.msg = broadcast;
             payload.item = retItem;
@@ -150,11 +175,15 @@ export default class node {
 
             return this.ping(payload);
 
-        } else if (payload.op === 'updateDataRange' && payload.pathIndex === payload.path.length - 1) {
-            // console.log('node id ' + this.id + ' received final updateDataRange op' + JSON.stringify(payload.newRange));
+        } else if (payload.op === 'updateDataRange' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
             this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
+            return Promise.resolve({msg: 'updateDataRange on node id ' + this.id + ' done'});
 
-        } else if (payload.pathIndex === 0) {
+        } else if (payload.pathIndex <= 0 && payload.newRange) {
+            this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
+            return Promise.resolve(payload);
+
+        } else if (payload.pathIndex <= 0) {
             return Promise.resolve(payload);
 
         } else {
@@ -170,10 +199,17 @@ export default class node {
     }
 
     ping(payload: payload): Promise<Object> {
-        if (this.id < 0) { return Promise.resolve('node: I am an invalid node!') }
-        const nodeToPing = this.nodeMap.get(payload.id);
 
-        if (!nodeToPing || payload.id === this.id) {
+        if (this.id < 0) {
+            return Promise.resolve('node: I am an invalid node!')
+
+        } else if (payload.path.length === 1 && payload.path[0] === this.id) {
+            payload.pathIndex = 0;
+            return this.processPayload(payload);
+        }
+
+        const nodeToPing = this.nodeMap.get(payload.id);
+        if (!nodeToPing) {
             return Promise.resolve('invalid node id requested');
         }
 
@@ -185,7 +221,6 @@ export default class node {
             const delay = this.delay();
             setTimeout(() => {
 
-                // console.log(delay / 1000);
                 resolve();
 
             }, delay);
@@ -240,7 +275,6 @@ export default class node {
             if (!(prePath instanceof Map)) {
                 path = prePath;
             }
-            console.log('shortest path to target is: ' + path);
 
             let pathIndex = path[0] === this.id ? 1 : 0;
             return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'r', itemId: itemId, dir: 'out'});
@@ -278,7 +312,6 @@ export default class node {
             if (!(prePath instanceof Map)) {
                 path = prePath;
             }
-            console.log('shortest path to target is: ' + path);
 
             let pathIndex = path[0] === this.id ? 1 : 0;
             
@@ -308,7 +341,6 @@ export default class node {
             if (!(prePath instanceof Map)) {
                 path = prePath;
             }
-            console.log('shortest path to target is: ' + path);
  
             let pathIndex = path[0] === this.id ? 1 : 0;
              
@@ -318,9 +350,7 @@ export default class node {
         // else assign the new datarange to a node at random
         // TODO: add numItems to nodes and choose the node with the least number of items
 
-        // TODO: when insert is successful, SEND BFS SIGNAL TO ALL NODES TO UPDATE THEIR DATA RANGE ORDEREDMAPS        
         targetNode = Math.round(Math.random() * (this.nodeMap.size - 1));
-        console.log('random target is ' + targetNode);
 
         const newRange = new DataRange();
         newRange.start = highestRange.end + 1;
@@ -334,20 +364,13 @@ export default class node {
         if (!(prePath instanceof Map)) {
             path = prePath;
         }
-        console.log('shortest path to target is: ' + path);
 
         let pathIndex = path[0] === this.id ? 1 : 0;
         return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, newRange: newRange, dir: 'out'});
-        /**
-         * send the new index range along with data to the target node(s)
-         * 
-         * on the target nodes in processPayload, if the insert is successful then send a BFS signal to all nodes with target's updated
-         * datarange and number of items
-         * 
-         * TODO: Define some way to update dataRange maps of all nodes upon insert or deletion
-         * 
-         * 
-         */
+    }
+
+    delete(itemId: number | Object): Promise<Object> {
+        return this.update(itemId, {deleted: true});
     }
 
     recover() {

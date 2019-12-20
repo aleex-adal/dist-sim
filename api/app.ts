@@ -17,50 +17,48 @@ app.listen(4000, async () => {
   let net: network = new network(10);
   let n: node = net.getNode(8);
 
-  console.log(
-    await n.read(36)
-  );
+  // console.log(
+  //   await n.read(36)
+  // );
 
-  console.log(
-    await n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'})
-  );
+  // console.log(
+  //   await n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'})
+  // );
 
   console.log(
     await n.insert({ fruit: 'I just inserted this fruit yo'})
   );
 
-  // this is probably the time to use lamport clocks... heh
-  setTimeout( async () => {
-    console.log(
-      await n.insert({ fruit: 'I just inserted this fruit AGAIN yo'})
-    );
-  }, 5000);
+  console.log(
+    await n.insert({ fruit: 'I just inserted this fruit AGAIN yo'})
+  );
 
-  // this is probably the time to use lamport clocks... heh
-  setTimeout( async () => {
-    console.log(
-      await n.insert({ fruit: '3'})
-    );
-  }, 5000);
+  console.log(
+    await n.insert({ fruit: '3'})
+  );
 
-  // this is probably the time to use lamport clocks... heh
-  setTimeout( async () => {
-    console.log(
-      await n.insert({ fruit: '4'})
-    );
-  }, 5000);
+  console.log(
+    await n.insert({ fruit: '4'})
+  );
 
-  // this is probably the time to use lamport clocks... heh
-  setTimeout( async () => {
-    console.log(
-      await n.insert({ fruit: '5'})
-    );
-  }, 5000);
+  console.log(
+    await n.insert({ fruit: '5'})
+  );
 
-  // this is probably the time to use lamport clocks... heh
-  setTimeout( async () => {
-    console.log(
-      await n.insert({ fruit: '6'})
-    );
-  }, 5000);
+  console.log(
+    await n.insert({ fruit: '6'})
+  );
+
+  console.log(
+    await n.delete(54)
+  )
+
+  console.log(
+    await n.delete(55)
+  )
+
+  console.log(
+    await n.insert({ fruit: '7'})
+  );
+
 });
