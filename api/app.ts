@@ -25,40 +25,27 @@ app.listen(4000, async () => {
   //   await n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'})
   // );
 
-  console.log(
-    await n.insert({ fruit: 'I just inserted this fruit yo'})
-  );
+  // console.log(
+  //   await n.insert({ fruit: 'I just inserted this fruit yo'})
+  // );
 
-  console.log(
-    await n.insert({ fruit: 'I just inserted this fruit AGAIN yo'})
-  );
+  // console.log(
+  //   await n.insert({ fruit: 'I just inserted this fruit AGAIN yo'})
+  // );
 
-  console.log(
-    await n.insert({ fruit: '3'})
-  );
+  // console.log(
+  //   await n.insert({ fruit: '3'})
+  // );
 
-  console.log(
-    await n.insert({ fruit: '4'})
-  );
+  // console.log(
+  //   await n.insert({ fruit: '4'})
+  // );
 
-  console.log(
-    await n.insert({ fruit: '5'})
-  );
+  // console.log(
+  //   await n.insert({ fruit: '5'})
+  // );
 
-  console.log(
-    await n.insert({ fruit: '6'})
-  );
-
-  console.log(
-    await n.delete(54)
-  )
-
-  console.log(
-    await n.delete(55)
-  )
-
-  console.log(
-    await n.insert({ fruit: '7'})
-  );
-
+  // console.log(
+  //   await n.insert({ fruit: '6'})
+  // );
 });

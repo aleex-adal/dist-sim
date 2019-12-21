@@ -10,4 +10,5 @@ export default class payload {
     itemId?: number;
     newRange?: DataRange;
     dir?: string;
+    sourceClock?: number[];
 }

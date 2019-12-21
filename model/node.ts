@@ -13,11 +13,11 @@ export default class node {
     dataRange: DataRange[] = [];
     dataSlice: Map<number, Object> = new Map();
 
+    clock: number[] = [];
+
     /**
      * TODO: add vector clocks
      * test that vector clocks function correctly
-     * 
-     * change insert so that all nodes will point to the same one (least id) when adding a new dataRange
      * 
      * 
      * for concurrent inserts, objects should be stored in arrival order and should not be "switched". if a stale node accidentally sends too many inserts
@@ -46,12 +46,11 @@ export default class node {
                 --payload.pathIndex;
             }
             payload.id = payload.path[payload.pathIndex];
-            // console.log('node id ' + this.id + ' received payload');
             return this.ping(payload);
 
         } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            // this.clock[this.id]++;
 
-            console.log('node id ' + this.id + ' received final out payload');
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
             for (let i = 0; i < this.dataRange.length; i++) {
@@ -106,7 +105,6 @@ export default class node {
 
         } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
 
-            // console.log('node id ' + this.id + ' received final out payload');
             let broadcast = 'successful';
             let retItem = {};
 
@@ -194,8 +192,6 @@ export default class node {
 
     constructor(id: number) {
         this.id = id;
-
-
     }
 
     ping(payload: payload): Promise<Object> {
@@ -237,10 +233,11 @@ export default class node {
         this.connections.forEach(id => {
             let newNode = network.getNode(id);
             if (newNode.id >= 0 && !originalNode.nodeMap.has(newNode.id)) {
-                originalNode.nodeMap.set(newNode.id, newNode);
-                newNode.dataRange.forEach( range => {
+                originalNode.nodeMap.set(newNode.id, newNode); // find all other nodes
+                newNode.dataRange.forEach( range => { // find all other dataRanges
                     originalNode.dataRangeOrderedMap.set(range.start, range);
                 });
+                originalNode.clock.push(0); // initialize vector clock
                 newNode.findAllNodes(originalNode, network);
             } else {
                 return;
@@ -249,6 +246,8 @@ export default class node {
     }
 
     read(itemId: number | Object): Promise<Object> {
+        this.clock[this.id]++;
+
         if (typeof itemId === 'number') {
             let targetNode = -1;
 
@@ -277,7 +276,7 @@ export default class node {
             }
 
             let pathIndex = path[0] === this.id ? 1 : 0;
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'r', itemId: itemId, dir: 'out'});
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'r', itemId: itemId, dir: 'out', sourceClock: this.clock});
         }
 
         // else it's an object, non-index search
@@ -286,6 +285,8 @@ export default class node {
     }
 
     update(itemId: number | Object, changes: Object): Promise<Object> {
+        this.clock[this.id]++;
+
         if (typeof itemId === 'number') {
             let targetNode = -1;
 
@@ -315,7 +316,7 @@ export default class node {
 
             let pathIndex = path[0] === this.id ? 1 : 0;
             
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'u', itemId: itemId, item: changes, dir: 'out'});
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'u', itemId: itemId, item: changes, dir: 'out', sourceClock: this.clock});
         }
 
         // else it's an object, non-index search
@@ -324,6 +325,8 @@ export default class node {
     }
 
     insert(item: Object | Object[]): Promise<Object> {
+        this.clock[this.id]++;
+
         let targetNode = -1;
 
         /**
@@ -344,13 +347,44 @@ export default class node {
  
             let pathIndex = path[0] === this.id ? 1 : 0;
              
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, dir: 'out'});
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, dir: 'out', sourceClock: this.clock});
         }
 
         // else assign the new datarange to a node at random
-        // TODO: add numItems to nodes and choose the node with the least number of items
+        // TODO: choose the node with the least number of data ranges, if there are multiple nodes then choose the one
+        // with the lowest id
 
-        targetNode = Math.round(Math.random() * (this.nodeMap.size - 1));
+        let dataRangeToNode: [{numDataRange: number, nodeId: number}];
+
+        this.dataRangeOrderedMap.map.forEach( (currDataRange, key) => {
+
+            if (!dataRangeToNode) {
+                dataRangeToNode = [{numDataRange: 1, nodeId: currDataRange.nodeId}];
+    
+            } else if (!dataRangeToNode.find(val => val.nodeId === currDataRange.nodeId)) {
+                dataRangeToNode.push({numDataRange: 1, nodeId: currDataRange.nodeId});
+    
+            } else {
+                dataRangeToNode.find(val => val.nodeId === currDataRange.nodeId)
+                    .numDataRange++;
+            }
+        });
+
+        dataRangeToNode.sort((a, b) => a.numDataRange - b.numDataRange);
+
+        let count = 0;
+        for (let i = 0; i < dataRangeToNode.length; i++) {
+            if (dataRangeToNode[i].numDataRange > dataRangeToNode[0].numDataRange) {
+                break;
+            }
+            count++;
+        }
+
+        const leastDataNodes = dataRangeToNode.splice(0, count);
+        
+        leastDataNodes.sort((a, b) => a.nodeId - b.nodeId);
+
+        targetNode = leastDataNodes[0].nodeId;
 
         const newRange = new DataRange();
         newRange.start = highestRange.end + 1;
