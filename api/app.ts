@@ -17,16 +17,16 @@ app.listen(4000, async () => {
   let net: network = new network(10);
   let n: node = net.getNode(8);
 
-  // console.log(
-  //   await n.read(36)
-  // );
+  console.log(
+    await n.read(36)
+  );
+
+  console.log(
+   await n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'})
+  );
 
   // console.log(
-  //   await n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'})
-  // );
-
-  // console.log(
-  //   await n.insert({ fruit: 'I just inserted this fruit yo'})
+  //  await n.insert({ fruit: 'I just inserted this fruit yo'})
   // );
 
   // console.log(

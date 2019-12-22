@@ -14,6 +14,8 @@ export default class node {
     dataSlice: Map<number, Object> = new Map();
 
     clock: number[] = [];
+    mostRecentWrite: {clock: number[], itemId: number, item: any} = undefined;
+
 
     /**
      * TODO: add vector clocks
@@ -39,6 +41,8 @@ export default class node {
             return Promise.resolve("Hello from node " + this.id);
 
         } else if (payload.pathIndex !== (payload.path.length - 1) && payload.pathIndex !== 0) {
+            // don't update clocks if the node is simply forwarding the message. Pretend like sourceNode is sending
+            // directly to targetNode
 
             if (payload.dir === 'out') {
                 ++payload.pathIndex;
@@ -49,7 +53,10 @@ export default class node {
             return this.ping(payload);
 
         } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
-            // this.clock[this.id]++;
+            this.syncAndIncrementClock(payload.sourceClock);
+            payload.sourceClock = this.clock;
+            this.clock[this.id]++; // increment once more because we're sending a message back
+            console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
@@ -70,6 +77,10 @@ export default class node {
             return this.ping(payload);
         
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            this.syncAndIncrementClock(payload.sourceClock);
+            payload.sourceClock = this.clock;
+            this.clock[this.id]++;
+            console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
@@ -81,7 +92,7 @@ export default class node {
             }
 
             let dbItem = this.dataSlice.get(payload.itemId);
-            if (dbItem) {
+            if (dbItem && (this.sourceHasUpdatedVectorClock(payload) || payload.item.deleted)) {
                 let changes = payload.item;
 
                 for (const key of Object.keys(changes)) {
@@ -95,6 +106,10 @@ export default class node {
                 this.dataSlice.set(payload.itemId, dbItem);
             }
 
+            if (!this.sourceHasUpdatedVectorClock(payload) && !payload.item.deleted) {
+                msg = 'this write has already been overwritten. Returning what is currently in the database';
+            }
+
             payload.msg = msg;
             payload.item = dbItem;
             payload.dir = 'in';
@@ -104,6 +119,9 @@ export default class node {
 
 
         } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            this.syncAndIncrementClock(payload.sourceClock);
+            payload.sourceClock = this.clock;
+            // increments at the bottom
 
             let broadcast = 'successful';
             let retItem = {};
@@ -157,8 +175,10 @@ export default class node {
 
                 realConnMap.forEach( (val, key) => {
                     if (key !== this.id && key !== payload.path[0]) {
+                        this.clock[this.id]++;
+                        const tempClock = this.clock.slice(0, this.clock.length); // for primitive numbers, slice returns copies (not references)
                         let pathIndex = val.path[0] === this.id ? 1 : 0;
-                        this.ping({id: val.path[pathIndex], path: val.path, pathIndex: pathIndex, op: 'updateDataRange', newRange: changedDataRange, dir: 'out'});
+                        this.ping({id: val.path[pathIndex], path: val.path, pathIndex: pathIndex, op: 'updateDataRange', newRange: changedDataRange, dir: 'out', sourceClock: tempClock});
                     }
                 });
             }
@@ -171,17 +191,29 @@ export default class node {
             payload.dir = 'in';
             payload.id = payload.path[--payload.pathIndex];
 
+            this.clock[this.id]++;
+            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+
             return this.ping(payload);
 
         } else if (payload.op === 'updateDataRange' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            this.syncAndIncrementClock(payload.sourceClock);
+            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+
             this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
             return Promise.resolve({msg: 'updateDataRange on node id ' + this.id + ' done'});
 
         } else if (payload.pathIndex <= 0 && payload.newRange) {
+            this.syncAndIncrementClock(payload.sourceClock);
+            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+        
             this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
             return Promise.resolve(payload);
 
         } else if (payload.pathIndex <= 0) {
+            this.syncAndIncrementClock(payload.sourceClock);
+            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+        
             return Promise.resolve(payload);
 
         } else {
@@ -194,7 +226,7 @@ export default class node {
         this.id = id;
     }
 
-    ping(payload: payload): Promise<Object> {
+    ping(payload: payload, delay?: number): Promise<Object> {
 
         if (this.id < 0) {
             return Promise.resolve('node: I am an invalid node!')
@@ -209,17 +241,21 @@ export default class node {
             return Promise.resolve('invalid node id requested');
         }
 
-        return this.connections.includes(payload.id) ? nodeToPing.respond(payload) : Promise.resolve("node: this node is not connected to id " + payload.id)
+        if (!delay) {
+            delay = 0;
+        }
+
+        return this.connections.includes(payload.id) ? nodeToPing.respond(payload, delay) : Promise.resolve("node: this node is not connected to id " + payload.id)
     }
 
-    respond(payload: payload): Promise<Object> {
+    respond(payload: payload, delay?: number): Promise<Object> {
         return new Promise<Object>((resolve) => {
-            const delay = this.delay();
+            const totalDelay = this.delay() + (delay * 1000);
             setTimeout(() => {
 
                 resolve();
 
-            }, delay);
+            }, totalDelay);
         })
         .then(
             () => this.processPayload(payload)
@@ -247,6 +283,7 @@ export default class node {
 
     read(itemId: number | Object): Promise<Object> {
         this.clock[this.id]++;
+        console.log('node id ' + this.id + ' sending read: ' + this.clock);
 
         if (typeof itemId === 'number') {
             let targetNode = -1;
@@ -284,8 +321,13 @@ export default class node {
         return Promise.resolve({result: 'unknown'});
     }
 
-    update(itemId: number | Object, changes: Object): Promise<Object> {
+    update(itemId: number | Object, changes: Object, delay?: number): Promise<Object> {
         this.clock[this.id]++;
+        if ( (<any> changes).deleted) {
+            console.log('node id ' + this.id + ' sending delete: ' + this.clock);
+        } else {
+            console.log('node id ' + this.id + ' sending update: ' + this.clock);
+        }
 
         if (typeof itemId === 'number') {
             let targetNode = -1;
@@ -316,7 +358,7 @@ export default class node {
 
             let pathIndex = path[0] === this.id ? 1 : 0;
             
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'u', itemId: itemId, item: changes, dir: 'out', sourceClock: this.clock});
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'u', itemId: itemId, item: changes, dir: 'out', sourceClock: this.clock}, delay);
         }
 
         // else it's an object, non-index search
@@ -326,6 +368,8 @@ export default class node {
 
     insert(item: Object | Object[]): Promise<Object> {
         this.clock[this.id]++;
+        console.log('node id ' + this.id + ' sending insert: ' + this.clock);
+
 
         let targetNode = -1;
 
@@ -400,7 +444,7 @@ export default class node {
         }
 
         let pathIndex = path[0] === this.id ? 1 : 0;
-        return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, newRange: newRange, dir: 'out'});
+        return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, newRange: newRange, dir: 'out', sourceClock: this.clock});
     }
 
     delete(itemId: number | Object): Promise<Object> {
@@ -480,5 +524,42 @@ export default class node {
 
     delay(): number {
         return Math.round(Math.random() * this.latency);
+    }
+
+    syncAndIncrementClock(sourceClock: number[]): void {
+        sourceClock.forEach( (val, i) => {
+            if (val > this.clock[i]) {
+                this.clock[i] = val;
+            }
+        });
+        this.clock[this.id]++;
+    }
+
+    sourceHasUpdatedVectorClock(payload: payload): boolean {
+
+        // if the source/request vector clock is updated, we will do the write
+        // if the source/request vector clock is behind our most recent write,
+        // we will ignore the incoming write
+        let doIncomingWrite = false;
+
+        if (!this.mostRecentWrite) {
+            this.mostRecentWrite = {clock: payload.sourceClock, itemId: payload.itemId, item: payload.item};
+            return true;
+        }
+
+        for ( let i = 0; i < this.mostRecentWrite.clock.length; i++) {
+            if (this.mostRecentWrite.clock[i] < payload.sourceClock[i]) {
+                // then the source is either concurrent with or more updated than our last write
+                // therefore, we will do this write
+                doIncomingWrite = true;
+                break;
+            }
+        } // else, we won't do this write because it is behind the most recent write. It is logically in the past
+
+        if (doIncomingWrite) {
+            this.mostRecentWrite = {clock: payload.sourceClock, itemId: payload.itemId, item: payload.item};
+        }
+
+        return doIncomingWrite;
     }
 }
