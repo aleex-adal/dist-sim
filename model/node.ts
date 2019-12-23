@@ -56,7 +56,7 @@ export default class node {
             this.syncAndIncrementClock(payload.sourceClock);
             payload.sourceClock = this.clock;
             this.clock[this.id]++; // increment once more because we're sending a message back
-            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+            // console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
@@ -78,9 +78,6 @@ export default class node {
         
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
             this.syncAndIncrementClock(payload.sourceClock);
-            payload.sourceClock = this.clock;
-            this.clock[this.id]++;
-            console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
@@ -92,7 +89,9 @@ export default class node {
             }
 
             let dbItem = this.dataSlice.get(payload.itemId);
-            if (dbItem && (this.sourceHasUpdatedVectorClock(payload) || payload.item.deleted)) {
+            const doIncomingWrite = this.sourceHasUpdatedVectorClock(payload);
+
+            if (dbItem && (doIncomingWrite || payload.item.deleted)) {
                 let changes = payload.item;
 
                 for (const key of Object.keys(changes)) {
@@ -102,12 +101,19 @@ export default class node {
                     }
                     dbItem[key] = changes[key];
                 }
-
                 this.dataSlice.set(payload.itemId, dbItem);
             }
 
-            if (!this.sourceHasUpdatedVectorClock(payload) && !payload.item.deleted) {
+            if ((doIncomingWrite === false) && (!!payload.item.deleted === false)) {
                 msg = 'this write has already been overwritten. Returning what is currently in the database';
+            }
+
+            if (doIncomingWrite) {
+                this.mostRecentWrite = {
+                    clock: payload.sourceClock.slice(0, payload.sourceClock.length), // yikes, gotta copy this instead of using pointers
+                    itemId: payload.itemId,
+                    item: payload.item
+                };
             }
 
             payload.msg = msg;
@@ -115,8 +121,10 @@ export default class node {
             payload.dir = 'in';
             payload.id = payload.path[--payload.pathIndex];
 
-            return this.ping(payload);
+            this.clock[this.id]++;
+            payload.sourceClock = this.clock;
 
+            return this.ping(payload);
 
         } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
             this.syncAndIncrementClock(payload.sourceClock);
@@ -192,27 +200,27 @@ export default class node {
             payload.id = payload.path[--payload.pathIndex];
 
             this.clock[this.id]++;
-            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+            // console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             return this.ping(payload);
 
         } else if (payload.op === 'updateDataRange' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
             this.syncAndIncrementClock(payload.sourceClock);
-            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+            // console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
             return Promise.resolve({msg: 'updateDataRange on node id ' + this.id + ' done'});
 
         } else if (payload.pathIndex <= 0 && payload.newRange) {
             this.syncAndIncrementClock(payload.sourceClock);
-            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+            // console.log('node id ' + this.id + ' new clock: ' + this.clock);
         
             this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
             return Promise.resolve(payload);
 
         } else if (payload.pathIndex <= 0) {
             this.syncAndIncrementClock(payload.sourceClock);
-            console.log('node id ' + this.id + ' new clock: ' + this.clock);
+            // console.log('node id ' + this.id + ' new clock: ' + this.clock);
         
             return Promise.resolve(payload);
 
@@ -283,7 +291,7 @@ export default class node {
 
     read(itemId: number | Object): Promise<Object> {
         this.clock[this.id]++;
-        console.log('node id ' + this.id + ' sending read: ' + this.clock);
+        // console.log('node id ' + this.id + ' sending read: ' + this.clock);
 
         if (typeof itemId === 'number') {
             let targetNode = -1;
@@ -324,9 +332,9 @@ export default class node {
     update(itemId: number | Object, changes: Object, delay?: number): Promise<Object> {
         this.clock[this.id]++;
         if ( (<any> changes).deleted) {
-            console.log('node id ' + this.id + ' sending delete: ' + this.clock);
+            // console.log('node id ' + this.id + ' sending delete: ' + this.clock);
         } else {
-            console.log('node id ' + this.id + ' sending update: ' + this.clock);
+            // console.log('node id ' + this.id + ' sending update: ' + this.clock);
         }
 
         if (typeof itemId === 'number') {
@@ -368,7 +376,7 @@ export default class node {
 
     insert(item: Object | Object[]): Promise<Object> {
         this.clock[this.id]++;
-        console.log('node id ' + this.id + ' sending insert: ' + this.clock);
+        // console.log('node id ' + this.id + ' sending insert: ' + this.clock);
 
 
         let targetNode = -1;
@@ -542,10 +550,15 @@ export default class node {
         // we will ignore the incoming write
         let doIncomingWrite = false;
 
-        if (!this.mostRecentWrite) {
-            this.mostRecentWrite = {clock: payload.sourceClock, itemId: payload.itemId, item: payload.item};
+        if (this.mostRecentWrite === undefined) {
+            console.log('VC: returning true because this is the first write');
             return true;
         }
+        
+
+        console.log('inside VC stuff');
+        console.log('mostRecentWrite: ' + JSON.stringify(this.mostRecentWrite));
+        console.log('payload sourceClock: ' + JSON.stringify(payload.sourceClock));
 
         for ( let i = 0; i < this.mostRecentWrite.clock.length; i++) {
             if (this.mostRecentWrite.clock[i] < payload.sourceClock[i]) {
@@ -556,10 +569,7 @@ export default class node {
             }
         } // else, we won't do this write because it is behind the most recent write. It is logically in the past
 
-        if (doIncomingWrite) {
-            this.mostRecentWrite = {clock: payload.sourceClock, itemId: payload.itemId, item: payload.item};
-        }
-
+        console.log('doIncomingWrite is ' + doIncomingWrite);
         return doIncomingWrite;
     }
 }

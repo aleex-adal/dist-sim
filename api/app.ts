@@ -17,13 +17,18 @@ app.listen(4000, async () => {
   let net: network = new network(10);
   let n: node = net.getNode(8);
 
-  console.log(
-    await n.read(36)
-  );
+  // console.log(
+  //   await n.read(36)
+  // );
 
-  console.log(
-   await n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'})
-  );
+  let val: any = await n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'});
+  console.log('{\n    item:  ' + JSON.stringify(val.item) + '\n    dataNode\'s clock:  ' + val.sourceClock + '\n    msg:  ' + val.msg + '\n}');
+
+  val = await n.update(36, { fruit: 'swagDOGES' });
+  console.log('{\n    item:  ' + JSON.stringify(val.item) + '\n    dataNode\'s clock:  ' + val.sourceClock + '\n    msg:  ' + val.msg + '\n}');
+
+  val = await n.update(36, { fruit: 'this update should be delayed' }, 5000);
+  console.log('{\n    item:  ' + JSON.stringify(val.item) + '\n    dataNode\'s clock:  ' + val.sourceClock + '\n    msg:  ' + val.msg + '\n}');
 
   // console.log(
   //  await n.insert({ fruit: 'I just inserted this fruit yo'})
