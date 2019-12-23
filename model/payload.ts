@@ -11,4 +11,5 @@ export default class payload {
     newRange?: DataRange;
     dir?: string;
     sourceClock?: number[];
+    requestClock?: number[];
 }

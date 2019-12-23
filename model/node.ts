@@ -54,7 +54,8 @@ export default class node {
 
         } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
             this.syncAndIncrementClock(payload.sourceClock);
-            payload.sourceClock = this.clock;
+            payload.requestClock = payload.sourceClock;
+            payload.sourceClock = JSON.parse(JSON.stringify(this.clock));
             this.clock[this.id]++; // increment once more because we're sending a message back
             // console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
@@ -110,7 +111,7 @@ export default class node {
 
             if (doIncomingWrite) {
                 this.mostRecentWrite = {
-                    clock: payload.sourceClock.slice(0, payload.sourceClock.length), // yikes, gotta copy this instead of using pointers
+                    clock: JSON.parse(JSON.stringify(payload.sourceClock)), // yikes, gotta copy this instead of using pointers
                     itemId: payload.itemId,
                     item: payload.item
                 };
@@ -122,13 +123,14 @@ export default class node {
             payload.id = payload.path[--payload.pathIndex];
 
             this.clock[this.id]++;
-            payload.sourceClock = this.clock;
+            payload.requestClock = payload.sourceClock;
+            payload.sourceClock = JSON.parse(JSON.stringify(this.clock));
 
             return this.ping(payload);
 
         } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
             this.syncAndIncrementClock(payload.sourceClock);
-            payload.sourceClock = this.clock;
+            
             // increments at the bottom
 
             let broadcast = 'successful';
@@ -184,7 +186,7 @@ export default class node {
                 realConnMap.forEach( (val, key) => {
                     if (key !== this.id && key !== payload.path[0]) {
                         this.clock[this.id]++;
-                        const tempClock = this.clock.slice(0, this.clock.length); // for primitive numbers, slice returns copies (not references)
+                        const tempClock = JSON.parse(JSON.stringify(this.clock));
                         let pathIndex = val.path[0] === this.id ? 1 : 0;
                         this.ping({id: val.path[pathIndex], path: val.path, pathIndex: pathIndex, op: 'updateDataRange', newRange: changedDataRange, dir: 'out', sourceClock: tempClock});
                     }
@@ -200,6 +202,8 @@ export default class node {
             payload.id = payload.path[--payload.pathIndex];
 
             this.clock[this.id]++;
+            payload.requestClock = payload.sourceClock;
+            payload.sourceClock = JSON.parse(JSON.stringify(this.clock));
             // console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             return this.ping(payload);
@@ -256,13 +260,12 @@ export default class node {
         return this.connections.includes(payload.id) ? nodeToPing.respond(payload, delay) : Promise.resolve("node: this node is not connected to id " + payload.id)
     }
 
-    respond(payload: payload, delay?: number): Promise<Object> {
+    respond(payload: payload, additionalDelay?: number): Promise<Object> {
         return new Promise<Object>((resolve) => {
-            const totalDelay = this.delay() + (delay * 1000);
+            const totalDelay = additionalDelay ? this.delay() + additionalDelay : this.delay()
+
             setTimeout(() => {
-
                 resolve();
-
             }, totalDelay);
         })
         .then(
@@ -321,7 +324,7 @@ export default class node {
             }
 
             let pathIndex = path[0] === this.id ? 1 : 0;
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'r', itemId: itemId, dir: 'out', sourceClock: this.clock});
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'r', itemId: itemId, dir: 'out', sourceClock: JSON.parse(JSON.stringify(this.clock))});
         }
 
         // else it's an object, non-index search
@@ -366,7 +369,7 @@ export default class node {
 
             let pathIndex = path[0] === this.id ? 1 : 0;
             
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'u', itemId: itemId, item: changes, dir: 'out', sourceClock: this.clock}, delay);
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'u', itemId: itemId, item: changes, dir: 'out', sourceClock: JSON.parse(JSON.stringify(this.clock))}, delay);
         }
 
         // else it's an object, non-index search
@@ -399,7 +402,7 @@ export default class node {
  
             let pathIndex = path[0] === this.id ? 1 : 0;
              
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, dir: 'out', sourceClock: this.clock});
+            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, dir: 'out', sourceClock: JSON.parse(JSON.stringify(this.clock))});
         }
 
         // else assign the new datarange to a node at random
@@ -452,7 +455,7 @@ export default class node {
         }
 
         let pathIndex = path[0] === this.id ? 1 : 0;
-        return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, newRange: newRange, dir: 'out', sourceClock: this.clock});
+        return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, newRange: newRange, dir: 'out', sourceClock: JSON.parse(JSON.stringify(this.clock))});
     }
 
     delete(itemId: number | Object): Promise<Object> {
