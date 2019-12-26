@@ -1,3 +1,7 @@
+:root {
+  --prompt-width: 50px;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -7,7 +11,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 
   color: #282c34;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 code {
@@ -35,7 +39,7 @@ nav {
 .nav-title {
   display: inline-block;
   font-family: 'Inria Serif', serif;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .menu-btn {
@@ -45,12 +49,38 @@ nav {
 }
 
 .menu {
-  box-sizing: border-box;
   position: absolute;
   top: 0;
   left: 100vw;
   height: 100vh;
-  background-color: gray;
+  background-color: #f1f5fd;;
+
+  width: 60vw;
+
+  transition: 0.3s ease-in-out;
+}
+
+.menu-active {
+  transform: translate3d(-60vw,0,0);
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left:0;
+  height: 100vh;
+  width: 500vh;
+  background-color: black;
+  visibility: hidden;
+  opacity: 0;
+
+  transition: 0.3s ease-in-out;
+}
+
+.overlay-active {
+  visibility: visible;
+  opacity: 0.6;
+  transform: translate3d(-60vw,0,0);
 }
 
 .sim {
@@ -66,6 +96,41 @@ nav {
   background-color: #282c34;
   color: #f1f5fd;
   padding: 15px;
+}
+
+textarea {
+  box-sizing: border-box;
+  height: 100%;
+  width: calc(100% - var(--prompt-width) - 5px);
+  float: right;
+
+  background-color: #282c34;
+  color: #f1f5fd;
+  border: none;
+  outline: none;
+  font-size: 20px;
+  font-family: 'Inconsolata', monospace;
+
+}
+
+.before-textarea {
+  display: inline-block;
+  padding-top: 2px;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.0;
+  }
+}
+@-webkit-keyframes blink {
+  50% {
+    opacity: 0.0;
+  }
+}
+.blink {
+  animation: blink 3s step-start 0s infinite;
+  -webkit-animation: blink 3s step-start 0s infinite;
 }
 
 /* @media only screen and (min-width: 767px) {
