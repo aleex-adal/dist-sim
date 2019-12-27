@@ -1,0 +1,33 @@
+:root {
+	--sim-wrapper-vertical-padding: 15px;
+	--sim-wrapper-horizontal-padding: 15px;
+
+	--circle-wrapper-height: 100%;
+	--circle-wrapper-width: 100%;
+
+}
+
+.sim-wrapper {
+  height: calc(0.65 * (100vh - 46px));
+	background-color: #f1f5fd;
+
+	padding-top: var(--sim-wrapper-vertical-padding);
+	padding-bottom: var(--sim-wrapper-vertical-padding);
+	padding-left: var(--sim-wrapper-horizontal-padding);
+	padding-right: var(--sim-wrapper-horizontal-padding);
+
+	text-align: center;
+}
+
+.circle-wrapper {
+	position: relative;
+	display:inline-block;
+	box-sizing: border-box;
+
+	height: var(--circle-wrapper-height);
+	width: var(--circle-wrapper-width);
+
+	border: dashed 1px;
+	border-radius: 50%;
+
+}

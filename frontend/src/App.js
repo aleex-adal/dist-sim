@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import menu from './resource/menu.svg';
 
+import Sim from './component/Sim/Sim.js';
+
 function App() {
-  const [menuClasses, setMenuClasses] = useState(['menu', 'overlay', 'before-textarea blink']);
+  const [menuClasses, setMenuClasses] = useState(['menu', 'overlay']);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
-    console.log('prompt width: ' + document.getElementById("prompt").offsetWidth);
   }, []);
 
   return (
     <div className="app">
+
       <header>
         <nav>
           <div className="nav-title">
@@ -20,20 +22,21 @@ function App() {
           <img className="menu-btn" src={menu} alt="Menu icon" onClick={() => setMenuClasses(['menu menu-active', 'overlay overlay-active'])}></img>
         </nav>
       </header>
-      <div className="sim">
-      </div>
+
+      <Sim />
+
       <div className="console">
-        <div id="prompt" className={menuClasses[2]}>>>></div>
-        <textarea onClick={() => {console.log('calling onclick'); const newMenuClasses = menuClasses; newMenuClasses[2] = 'before-textarea'; setMenuClasses(newMenuClasses)}}></textarea>
+        <div id="prompt" className="before-textarea blink">>>></div>
+        <textarea onClick={() => document.getElementById('prompt').classList.remove('blink')}></textarea>
       </div>
 
       <div className={menuClasses[1]} onClick={() => setMenuClasses(['menu', 'overlay'])}></div>
-
       <div className={menuClasses[0]}>
         <ul>
           <li>about</li>
         </ul>
       </div>
+
     </div>
   );
 }
