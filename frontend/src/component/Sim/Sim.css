@@ -1,11 +1,11 @@
 :root {
-	--sim-wrapper-vertical-padding: 15px;
-	--sim-wrapper-horizontal-padding: 15px;
+	--sim-wrapper-vertical-padding: 25px;
+	--sim-wrapper-horizontal-padding: 25px;
 
 	--circle-wrapper-height: 100%;
 	--circle-wrapper-width: 100%;
 
-	--node-diameter: 50px;
+	--node-diameter: calc(var(--circle-wrapper-width) / 7);
 
 }
 
@@ -30,18 +30,18 @@
 	height: var(--circle-wrapper-height);
 	width: var(--circle-wrapper-width);
 
-	border: dashed 1px;
+	/* border: dashed 1px; */
+	border: none;
 	border-radius: 50%;
 
 }
-
 
 .dot {
 	box-sizing: border-box;
 	height: var(--node-diameter);
 	width: var(--node-diameter);
 	text-align: center;
-	line-height: calc(var(--node-diameter) - 2px); /* minus border width */
+	line-height: calc(var(--node-diameter) - 2px); /* minus border width, we need to reset this with js for some rsn*/
 	font-family: 'Inconsolata', monospace;
 	font-weight: bold;
 
