@@ -5,10 +5,13 @@
 	--circle-wrapper-height: 100%;
 	--circle-wrapper-width: 100%;
 
+	--node-diameter: 50px;
+
 }
 
 .sim-wrapper {
-  height: calc(0.65 * (100vh - 46px));
+	box-sizing: border-box;
+  	height: calc(0.65 * (100vh - 46px));
 	background-color: #f1f5fd;
 
 	padding-top: var(--sim-wrapper-vertical-padding);
@@ -30,4 +33,25 @@
 	border: dashed 1px;
 	border-radius: 50%;
 
+}
+
+
+.dot {
+	box-sizing: border-box;
+	height: var(--node-diameter);
+	width: var(--node-diameter);
+	text-align: center;
+	line-height: calc(var(--node-diameter) - 2px); /* minus border width */
+	font-family: 'Inconsolata', monospace;
+	font-weight: bold;
+
+	border: 2px solid #282c34;
+	background-color: #f1f5fd;
+	border-radius: 50%;
+	display: inline-block;
+
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: calc(-1 * var(--node-diameter) / 2);
 }

@@ -1,27 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import './Sim.css';
 
 const Sim = (props) => {
-	const circleRef = React.createRef();
 
 	useEffect(() => {
+		// TODO: make this work for resizing too
+		// window.addEventListener('resize', sizeOuterCircle);
+		sizeOuterCircle();
+		generateNodes(10);
+	}, []);
+
+	const sizeOuterCircle = () => {
 		var width = document.getElementById("sim-wrapper").offsetWidth;
 		var height = document.getElementById("sim-wrapper").offsetHeight;
 
 		// screen is tall
 		if (height > width) {
-			var circleRadius = document.getElementById("circle-wrapper").offsetWidth;
+			var circleDiameter = document.getElementById("circle-wrapper").offsetWidth;
 
 			document.documentElement.style.setProperty(
 				'--circle-wrapper-height', 
-				circleRadius + 'px'
+				circleDiameter + 'px'
 			);
 
 			// set padding to center vertically
-			// document.documentElement.style.setProperty(
-			// 	'--sim-wrapper-vertical-padding',
-			// 	((document.getElementById("sim-wrapper").offsetHeight - circleRadius) / 2) + 'px'
-			// )
+			document.documentElement.style.setProperty(
+				'--sim-wrapper-vertical-padding',
+				((document.getElementById("sim-wrapper").offsetHeight - circleDiameter) / 2) + 'px'
+			)
+
+			// reset height to what it was originally
+			document.getElementById("sim-wrapper").style.height = height + 'px';
 
 		// screen is wide
 		} else if (height < width) {
@@ -30,11 +39,29 @@ const Sim = (props) => {
 				document.getElementById("circle-wrapper").offsetHeight + 'px'
 			);
 		}
-	}, []);
 
-  return (
+	};
+
+	const generateNodes = (num) => {
+		// transform: rotate(-90deg) rotate(45deg) translate(150px) rotate(-45deg);
+
+		for (let i = 0; i < num; i++) {
+			const newDiv = document.createElement('div');
+			newDiv.setAttribute('class', 'dot');
+			newDiv.setAttribute('id', i);
+			const newContent = document.createTextNode(i);
+			newDiv.appendChild(newContent);
+
+			const deg = (360 / num) * i;
+
+			document.getElementById('circle-wrapper').append(newDiv);
+			document.getElementById(i).style.transform = 'rotate(-90deg) rotate(' + deg + 'deg) translate(150px) rotate(-' + deg + 'deg) rotate(90deg)';
+		}
+	};
+
+	return (
   	<div id="sim-wrapper" className="sim-wrapper">
-      <div id="circle-wrapper" ref={circleRef} className="circle-wrapper">
+      <div id="circle-wrapper" className="circle-wrapper">
 			
       </div>
     </div>
