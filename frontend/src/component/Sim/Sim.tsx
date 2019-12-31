@@ -1,7 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Sim.css';
+import Network from '../../model/network';
 
-const Sim = (props) => {
+interface SimProps { }
+
+const Sim: React.FunctionComponent<SimProps> = (props) => {
+
+	const [network, setNetwork] = useState(undefined);
 
 	useEffect(() => {
 		// TODO: make this work for resizing too
@@ -43,13 +48,11 @@ const Sim = (props) => {
 	};
 
 	const generateNodes = (num) => {
-		// transform: rotate(-90deg) rotate(45deg) translate(150px) rotate(-45deg);
-
 		for (let i = 0; i < num; i++) {
 			const newDiv = document.createElement('div');
 			newDiv.setAttribute('class', 'dot');
-			newDiv.setAttribute('id', i);
-			const newContent = document.createTextNode(i);
+			newDiv.setAttribute('id', i.toString());
+			const newContent = document.createTextNode(i.toString());
 			newDiv.appendChild(newContent);
 
 			const deg = (360 / num) * i;
@@ -57,9 +60,23 @@ const Sim = (props) => {
 			var width = (document.getElementById("circle-wrapper").offsetWidth / 2) + 'px';
 
 			document.getElementById('circle-wrapper').append(newDiv);
-			document.getElementById(i).style.transform = "rotate(-90deg) rotate(" + deg + "deg) translate(" + width + ") rotate(-" + deg + "deg) rotate(90deg)";
-			document.getElementById(i).style.lineHeight = document.getElementById(i).offsetWidth - 2 + 'px'; // reset line height, - 2 is border width
+			document.getElementById(i.toString()).style.transform = "rotate(-90deg) rotate(" + deg + "deg) translate(" + width + ") rotate(-" + deg + "deg) rotate(90deg)";
+			document.getElementById(i.toString()).style.lineHeight = document.getElementById(i.toString()).offsetWidth - 2 + 'px'; // reset line height, - 2 is border width
 		}
+
+		const net = new Network(num);
+		setNetwork(net);
+
+		const edges = [];
+		net.nodeMap.forEach(node => {
+			node.connections.forEach( connection => {
+				if (edges.findIndex(
+					elem => (elem[0] === node.id && elem[1] === connection) || (elem[1] === node.id && elem[0] === connection)
+				) < 0) {
+					// add the edge to edges, create new line on the svg
+				}
+			});
+		});
 
 		// test, connect 0 with 3
 		var cxZero = document.getElementById('0').getBoundingClientRect().left;
@@ -71,17 +88,31 @@ const Sim = (props) => {
 		var cyThree = document.getElementById('3').getBoundingClientRect().top - subtractBy;
 
 		console.log('0: ' + cxZero + ' ' + cyZero + ', 3: ' + cxThree + ' ' + cyThree);
+
+		let newSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+		newSvg.setAttribute('width',  document.getElementById('circle-wrapper').offsetWidth.toString());
+		newSvg.setAttribute('height', document.getElementById('circle-wrapper').offsetWidth.toString());
+		
+		let newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+		newLine.setAttribute('x1', '0');
+		newLine.setAttribute('y1', '0');
+		newLine.setAttribute('x2', '100');
+		newLine.setAttribute('y2', '100');
+		newLine.setAttribute('stroke', '#282c34');
+		newLine.setAttribute('stroke-width', '2px');
+
+		newSvg.append(newLine);
+
+		document.getElementById('circle-wrapper').insertBefore(newSvg, document.getElementById('0'));
 	};
 
 	return (
-  	<div id="sim-wrapper" className="sim-wrapper">
-      <div id="circle-wrapper" className="circle-wrapper">
-	  	<svg width="500" height="500"><line x1="179.71875" y1="0" x2="351.38446044921875" y2="236.277587890625" stroke="black"/></svg>
-
-      </div>
-    </div>
-	)
-
+		<div id="sim-wrapper" className="sim-wrapper">
+		<div id="circle-wrapper" className="circle-wrapper">
+			{/* <svg width="500" height="500"><line x1="179.71875" y1="0" x2="351.38446044921875" y2="236.277587890625" stroke="black"/></svg> */}
+		</div>
+		</div>
+	);
 }
 
 export default Sim;

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import menu from './resource/menu.svg';
 
-import Sim from './component/Sim/Sim.js';
+import Sim from './component/Sim/Sim';
 
-function App() {
+const App: React.FC = () => {
   const [menuClasses, setMenuClasses] = useState(['menu', 'overlay']);
 
   useEffect(() => {
