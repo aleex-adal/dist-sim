@@ -68,41 +68,50 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		setNetwork(net);
 
 		const edges = [];
+		const subtractBy = document.getElementById('0').getBoundingClientRect().top;
+
+		let newSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+		newSvg.setAttribute('width',  document.getElementById('circle-wrapper').offsetWidth.toString());
+		newSvg.setAttribute('height', document.getElementById('circle-wrapper').offsetWidth.toString());
+
 		net.nodeMap.forEach(node => {
 			node.connections.forEach( connection => {
 				if (edges.findIndex(
 					elem => (elem[0] === node.id && elem[1] === connection) || (elem[1] === node.id && elem[0] === connection)
 				) < 0) {
 					// add the edge to edges, create new line on the svg
+					edges.push([node.id, connection]);
+
+					const x1 = document.getElementById(node.id.toString()).getBoundingClientRect().left;
+					const y1 = document.getElementById(node.id.toString()).getBoundingClientRect().top - subtractBy;
+
+					const x2 = document.getElementById(connection.toString()).getBoundingClientRect().left;
+					const y2 = document.getElementById(connection.toString()).getBoundingClientRect().top - subtractBy;
+
+					const newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+					newLine.setAttribute('x1', x1.toString());
+					newLine.setAttribute('y1', y1.toString());
+					newLine.setAttribute('x2', x2.toString());
+					newLine.setAttribute('y2', y2.toString());
+					newLine.setAttribute('stroke', '#282c34');
+					newLine.setAttribute('stroke-width', '2px');
+
+					newSvg.append(newLine);
 				}
 			});
 		});
 
-		// test, connect 0 with 3
-		var cxZero = document.getElementById('0').getBoundingClientRect().left;
+		// // test, connect 0 with 3
+		// var cxZero = document.getElementById('0').getBoundingClientRect().left;
 
-		var subtractBy = document.getElementById('0').getBoundingClientRect().top;
-		var cyZero = document.getElementById('0').getBoundingClientRect().top - subtractBy;
+		// // var subtractBy = document.getElementById('0').getBoundingClientRect().top;
+		// var cyZero = document.getElementById('0').getBoundingClientRect().top - subtractBy;
 
-		var cxThree = document.getElementById('3').getBoundingClientRect().left;
-		var cyThree = document.getElementById('3').getBoundingClientRect().top - subtractBy;
+		// var cxThree = document.getElementById('3').getBoundingClientRect().left;
+		// var cyThree = document.getElementById('3').getBoundingClientRect().top - subtractBy;
 
-		console.log('0: ' + cxZero + ' ' + cyZero + ', 3: ' + cxThree + ' ' + cyThree);
-
-		let newSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-		newSvg.setAttribute('width',  document.getElementById('circle-wrapper').offsetWidth.toString());
-		newSvg.setAttribute('height', document.getElementById('circle-wrapper').offsetWidth.toString());
+		// console.log('0: ' + cxZero + ' ' + cyZero + ', 3: ' + cxThree + ' ' + cyThree);
 		
-		let newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
-		newLine.setAttribute('x1', '0');
-		newLine.setAttribute('y1', '0');
-		newLine.setAttribute('x2', '100');
-		newLine.setAttribute('y2', '100');
-		newLine.setAttribute('stroke', '#282c34');
-		newLine.setAttribute('stroke-width', '2px');
-
-		newSvg.append(newLine);
-
 		document.getElementById('circle-wrapper').insertBefore(newSvg, document.getElementById('0'));
 	};
 
