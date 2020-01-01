@@ -3,6 +3,7 @@ import DataRange from "./DataRange";
 
 export default class Network {
     nodeMap: Map<number, node> = new Map();
+    numNodes: number = undefined;
 
     // generates a biased graph, but apparently it's similar to real networks
     // TODO: generate a truly random graph
@@ -10,6 +11,8 @@ export default class Network {
         if (!dataRangeSize) {
             dataRangeSize = 5;
         }
+
+        this.numNodes = numNodes;
 
         // populate nodes
         for (let i = 0; i < numNodes; i++) {

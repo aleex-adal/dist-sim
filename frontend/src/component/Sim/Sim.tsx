@@ -2,17 +2,18 @@ import React, { useEffect, useState } from 'react';
 import './Sim.css';
 import Network from '../../model/network';
 
-interface SimProps { }
+interface SimProps {
+	net: Network
+	getNodeInfo: (id: number) => void;
+ }
 
 const Sim: React.FunctionComponent<SimProps> = (props) => {
-
-	const [network, setNetwork] = useState(undefined);
 
 	useEffect(() => {
 		// TODO: make this work for resizing too
 		// window.addEventListener('resize', sizeOuterCircle);
 		sizeOuterCircle();
-		generateNodes(10);
+		generateNodes(props.net.numNodes);
 	}, []);
 
 	const sizeOuterCircle = () => {
@@ -62,10 +63,9 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			document.getElementById('circle-wrapper').append(newDiv);
 			document.getElementById(i.toString()).style.transform = "rotate(-90deg) rotate(" + deg + "deg) translate(" + width + ") rotate(-" + deg + "deg) rotate(90deg)";
 			document.getElementById(i.toString()).style.lineHeight = document.getElementById(i.toString()).offsetWidth - 2 + 'px'; // reset line height, - 2 is border width
-		}
 
-		const net = new Network(num);
-		setNetwork(net);
+			document.getElementById(i.toString()).addEventListener('click', (ev) => {props.getNodeInfo(i)});
+		}
 
 		const edges = [];
 		const subtractBy = document.getElementById('0').getBoundingClientRect().top;
@@ -73,8 +73,9 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		let newSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
 		newSvg.setAttribute('width',  document.getElementById('circle-wrapper').offsetWidth.toString());
 		newSvg.setAttribute('height', document.getElementById('circle-wrapper').offsetWidth.toString());
+		newSvg.setAttribute('id', 'new-svg');
 
-		net.nodeMap.forEach(node => {
+		props.net.nodeMap.forEach(node => {
 			node.connections.forEach( connection => {
 				if (edges.findIndex(
 					elem => (elem[0] === node.id && elem[1] === connection) || (elem[1] === node.id && elem[0] === connection)
@@ -100,17 +101,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 				}
 			});
 		});
-
-		// // test, connect 0 with 3
-		// var cxZero = document.getElementById('0').getBoundingClientRect().left;
-
-		// // var subtractBy = document.getElementById('0').getBoundingClientRect().top;
-		// var cyZero = document.getElementById('0').getBoundingClientRect().top - subtractBy;
-
-		// var cxThree = document.getElementById('3').getBoundingClientRect().left;
-		// var cyThree = document.getElementById('3').getBoundingClientRect().top - subtractBy;
-
-		// console.log('0: ' + cxZero + ' ' + cyZero + ', 3: ' + cxThree + ' ' + cyThree);
 		
 		document.getElementById('circle-wrapper').insertBefore(newSvg, document.getElementById('0'));
 	};
@@ -118,7 +108,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 	return (
 		<div id="sim-wrapper" className="sim-wrapper">
 		<div id="circle-wrapper" className="circle-wrapper">
-			{/* <svg width="500" height="500"><line x1="179.71875" y1="0" x2="351.38446044921875" y2="236.277587890625" stroke="black"/></svg> */}
+
 		</div>
 		</div>
 	);
