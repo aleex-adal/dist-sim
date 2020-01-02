@@ -20,8 +20,9 @@ code {
 }
 
 .app {
-  height: 100vh;
+  /* height: 100vh; */
   overflow-x: hidden;
+  overflow-y: hidden;
   position: relative;
 }
 
@@ -95,11 +96,30 @@ nav {
   box-sizing: border-box;
   overflow: scroll;
 
-  height: calc(0.35 * (100vh - 46px));
+  /* height: calc(0.35 * (100vh - 46px)); */
+  min-height: 80vh;
   font-family: 'Inconsolata', monospace;
   background-color: #282c34;
   color: #f1f5fd;
   padding: 15px;
+}
+
+.run {
+  box-sizing: border-box;
+  color: #282c34;
+
+  text-align: center;
+  border: 1px solid #282c34;
+  border-radius: 2px;
+  padding: 2px;
+  margin-bottom: 10px;
+
+  transition: 0.3s ease-in-out;
+}
+
+.run-active {
+  color: #f1ef43;
+  border: 1px solid #f1ef43;
 }
 
 .node-info {
