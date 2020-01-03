@@ -27,11 +27,11 @@ export default class Network {
                 );
 
                 // 50% chance of having second connection
-                if ( i > 1 && Math.round(Math.random())) {
-                    connectionsToPush.push(
-                        Math.round(Math.random() * (this.nodeMap.size - 1))
-                    );
-                }
+                // if ( i > 1 && Math.round(Math.random())) {
+                //     connectionsToPush.push(
+                //         Math.round(Math.random() * (this.nodeMap.size - 1))
+                //     );
+                // }
 
                 connectionsToPush.forEach( conn => {
                     n.connections.push(conn);

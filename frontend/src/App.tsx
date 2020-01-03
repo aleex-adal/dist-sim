@@ -4,6 +4,7 @@ import menu from './resource/menu.svg';
 
 import Sim from './component/Sim/Sim';
 import Network from './model/network';
+import Controls from './component/Controls/Controls';
 
 const App: React.FC = () => {
   const [menuClasses, setMenuClasses] = useState(['menu', 'overlay']);
@@ -17,25 +18,18 @@ const App: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
+    document.getElementById("textarea").style.height = (document.getElementById("console").offsetHeight - 30 - document.getElementById("run").offsetHeight) + 'px';
     document.getElementById('new-svg').addEventListener('click',
       (ev) => {
         setNodeInfoClasses(['node-info']);
-        try {
-          document.getElementById('nav').scrollIntoView({ behavior: "smooth"});
-        } catch (e) { // mobile safari does not support smooth scroll
-          document.getElementById('nav').scrollIntoView();
-        }
+        scrollToTop();
         document.getElementById('app').style.overflowY = 'hidden';
       });
 
     // when user clicks off of the textarea, scroll up so there isn't awks whitespace at the bottom
     const ta = document.getElementById("textarea");
     ta.addEventListener('click', event => {
-      try {
-        document.getElementById('end').scrollIntoView({behavior: "smooth"});
-      } catch (e) { // mobile safari does not support smooth scroll
-        document.getElementById('end').scrollIntoView();
-      }
+      scrollToEnd();
       document.removeEventListener('click', detectClickOffTextArea);
       document.addEventListener('click', detectClickOffTextArea);
     });
@@ -44,11 +38,7 @@ const App: React.FC = () => {
 
   const detectClickOffTextArea = (event: MouseEvent) => {
     if (!document.getElementById("textarea").contains(event.target as Node)) {
-      try {
-        document.getElementById('nav').scrollIntoView({ behavior: "smooth"});
-      } catch (e) { // mobile safari does not support smooth scroll
-        document.getElementById('nav').scrollIntoView();
-      }
+      scrollToTop();
       document.removeEventListener('click', detectClickOffTextArea);
     }
   }
@@ -94,11 +84,7 @@ const App: React.FC = () => {
     document.getElementById('node-info').innerHTML = infoToPrint;
     if (document.getElementById('node-info').classList.length === 1) {
       setNodeInfoClasses(['node-info node-info-active']);
-      try {
-        document.getElementById('end').scrollIntoView({behavior: "smooth"});
-      } catch (e) { // mobile safari does not support smooth scroll
-        document.getElementById('end').scrollIntoView();
-      }
+      scrollToEnd();
     }
   };
 
@@ -112,6 +98,22 @@ const App: React.FC = () => {
     } else if (!currValue) {
       setRunButtonClasses(['run']);
       document.getElementById('run').classList.remove('run-active');
+    }
+  };
+
+  const scrollToTop = () => {
+    try {
+      document.getElementById('nav').scrollIntoView({ behavior: "smooth"});
+    } catch (e) { // mobile safari does not support smooth scroll
+      document.getElementById('nav').scrollIntoView();
+    }
+  };
+
+  const scrollToEnd = () => {
+    try {
+      document.getElementById('end').scrollIntoView({behavior: "smooth"});
+    } catch (e) { // mobile safari does not support smooth scroll
+      document.getElementById('end').scrollIntoView();
     }
   };
 
@@ -129,8 +131,9 @@ const App: React.FC = () => {
 
       <Sim net={network} getNodeInfo={getNodeInfo} />
 
-      <div className="console">
-        <div id="run" className="run">run</div>
+      <div id="console" className="console">
+        <Controls />
+  
         <div id="prompt" className="before-textarea blink">>>></div>
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={handleTextAreaInput}></textarea>
       </div>

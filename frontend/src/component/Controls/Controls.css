@@ -1,0 +1,76 @@
+.run {
+    box-sizing: border-box;
+    color: #282c34;
+  
+    text-align: center;
+    border: 1px solid #282c34;
+    border-radius: 2px;
+    padding: 2px;
+    margin-bottom: 10px;
+  
+    transition: 0.3s ease-in-out;
+  }
+  
+  .run-active {
+    color: #f1ef43;
+    border: 1px solid #f1ef43;
+  }
+  
+  .run-running {
+    color: #18cdfa;
+    border: 1px solid #18cdfa;
+  }
+  
+  .back {
+    box-sizing: border-box;
+    color: #18cdfa;
+    text-align: center;
+    border: 1px solid #18cdfa;
+    border-radius: 2px;
+    padding: 2px;
+    margin-bottom: 10px;
+  
+    width: 33.33%;
+    display: none;
+    transition: 0.3s ease-in-out;
+  }
+  
+  .play {
+    box-sizing: border-box;
+    color: #18cdfa;
+    text-align: center;
+    border: 1px solid #18cdfa;
+    border-radius: 2px;
+    padding: 2px;
+    margin-bottom: 10px;
+  
+    width: 33.33%;
+    display: none;
+    transition: 0.3s ease-in-out;
+  }
+  
+  .forward {
+    box-sizing: border-box;
+    color: #18cdfa;
+    text-align: center;
+    border: 1px solid #18cdfa;
+    border-radius: 2px;
+    padding: 2px;
+    margin-bottom: 10px;
+  
+    width: 33.33%;
+    display: none;
+    transition: 0.3s ease-in-out;
+  }
+  
+  .display-inline-block {
+    display: inline-block;
+  }
+  
+  .display-none {
+    display: none;
+  }
+  
+  .display-block {
+    display: block;
+  }
