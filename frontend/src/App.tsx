@@ -1,9 +1,9 @@
-import React, { useState, useEffect, ChangeEvent, TextareaHTMLAttributes } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import './App.css';
 import menu from './resource/menu.svg';
 
 import Sim from './component/Sim/Sim';
-import Network from './model/network';
+import Network from './model/Network';
 import Controls from './component/Controls/Controls';
 
 const App: React.FC = () => {

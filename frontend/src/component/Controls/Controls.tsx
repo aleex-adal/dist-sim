@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Controls.css';
-import { compileFunction } from 'vm';
+import compile from '../../scripting/interpret';
 
 interface ControlsProps {
 
@@ -20,7 +20,7 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
     if (runOrControls === 'run' && active && !running) {
 			btn.innerHTML = 'pause';
 			btn.classList.add('run-running');
-			compile((document.getElementById("textarea") as any).value);
+			console.log(compile((document.getElementById("textarea") as any).value));
 
 		} else if (runOrControls === 'run' && running) {// toggle and show the back-play-forward btns
 			btn.classList.remove('run-active');
@@ -57,10 +57,6 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
       document.getElementById('nav').scrollIntoView();
     }
 	};
-	
-	const compile = (input: string) => {
-		console.log('received string: ' + input);
-	}
 
 	return (
 		<>

@@ -1,4 +1,4 @@
-import network from "./network";
+import Network from "./Network";
 import payload from "./payload";
 import DataRange from "./DataRange";
 import OrderedMap from "./OrderedMap";
@@ -276,7 +276,7 @@ export default class node {
     // set data that nodes will need to know about other nodes
     // includes node object metadata (not the actual data) and data range information
     // (which node has which range of id's? Is that range full?)
-    findAllNodes(originalNode: node, network: network): void {
+    findAllNodes(originalNode: node, network: Network): void {
         this.connections.forEach(id => {
             let newNode = network.getNode(id);
             if (newNode.id >= 0 && !originalNode.nodeMap.has(newNode.id)) {

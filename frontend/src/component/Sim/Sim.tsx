@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Sim.css';
-import Network from '../../model/network';
+import Network from '../../model/Network';
 
 interface SimProps {
 	net: Network
