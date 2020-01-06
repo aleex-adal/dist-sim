@@ -3,7 +3,7 @@ import './Controls.css';
 import * as interpret from '../../util/interpret';
 
 interface ControlsProps {
-	setInstructions: React.Dispatch<React.SetStateAction<interpret.InstructionBlock[]>>
+	setInstructionBlocks: React.Dispatch<React.SetStateAction<interpret.InstructionBlock[]>>
 }
 
 const Controls: React.FunctionComponent<ControlsProps> = (props) => {
@@ -24,13 +24,13 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 			}
 
 			let success = true;
-			const instructions = interpret.compile((document.getElementById("textarea") as any).value);
+			const blocks = interpret.createInstructionBlocks((document.getElementById("textarea") as any).value);
 
-			instructions.forEach( instructionBlock => {
+			blocks.forEach( instructionBlock => {
 
 				instructionBlock.instructions.forEach(instr => {
 
-					const checkResult = interpret.checkCommandSyntax(instr.text);
+					const checkResult = interpret.interpretOneCommand(instr.text, false);
 					if (checkResult.failure) {
 
 						success = false;
@@ -47,7 +47,7 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 			});
 
 			if (success) {
-				props.setInstructions(instructions);
+				props.setInstructionBlocks(blocks);
 				scrollToTop();
 				btn.innerHTML = 'pause';
 				btn.classList.add('run-running');

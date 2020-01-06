@@ -10,7 +10,7 @@ export interface InstructionBlock {
     status: string
 }
 
-export function compile(input: string): InstructionBlock[] {
+export function createInstructionBlocks(input: string): InstructionBlock[] {
 
     input = input.toLowerCase();
 
@@ -70,9 +70,21 @@ export function interpretAllCommands(something: any): any {
     return undefined;
 }
 
-export function checkCommandSyntax(input: string) {
 
-    let inputObj  = {};
+/**
+ * 
+ * @param input string command input
+ * @param executeCommands if false, this function just checks for bad syntax
+ * 
+ * @returns Object with .failure either true or false, or the timeline
+ */
+export function interpretOneCommand(input: string, executeCommands: boolean, network?: Network): any {
+
+    // if command has correct syntax all of these will be populated as necessary
+    let inputObj  = undefined;
+    let nodeId: number = undefined;
+    let op: 'read' | 'update' | 'insert' | 'delete' = undefined;
+    let itemId: number = undefined;
 
     // detect json object and take it out before splitting
     let jsonStartIndex = 0;
@@ -107,11 +119,6 @@ export function checkCommandSyntax(input: string) {
 
     inputArr = cleanArr;
     let i = 0;
-
-    let concurrent: boolean;
-    let nodeId: number;
-    let op: 'read' | 'update' | 'insert' | 'delete';
-    let itemId: number;
 
     if (inputArr[i] === 'node' || inputArr[i] === 'n') {
         i++;
@@ -179,7 +186,15 @@ export function checkCommandSyntax(input: string) {
         return {failure: true, msg: 'operation \'' + inputArr[i] + '\' not recognized'};
     }
 
-    return {failure: false};
+    if (!executeCommands) {
+        return {failure: false};
+
+    } else if (executeCommands && !network) {
+        return {failure: true, msg: 'A network to perform the operations on must be provided'};
+    }
+
+    // now, actually execute the commands lol
+
 
     // network.getNode(nodeId)
     //return node.op(itemId | JSON)

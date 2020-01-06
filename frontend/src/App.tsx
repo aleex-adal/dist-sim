@@ -4,8 +4,8 @@ import menu from './resource/menu.svg';
 
 import Sim from './component/Sim/Sim';
 import Controls from './component/Controls/Controls';
+import Api, { generateNetwork } from './component/Api/Api';
 
-import * as api from './util/sim-api';
 import { InstructionBlock, Instruction } from './util/interpret';
 
 const App: React.FC = () => {
@@ -14,10 +14,12 @@ const App: React.FC = () => {
   // this needs to be a pointer or the tsx element will just do a primitive string copy and won't receive changes
   const [nodeInfoClasses, setNodeInfoClasses] = useState(['node-info']);
   const [runButtonClasses, setRunButtonClasses] = useState(['run']);
-  const [network, setNetwork] = useState(api.generateNetwork(10));
 
-  let ib: InstructionBlock[];
-  const [instructionBlocks, setInstructions] = useState(ib);
+  const [network, setNetwork] = useState(generateNetwork(10));
+
+  // initialize state to null values but keep those suckers typed
+  const [instructionBlocks, setInstructionBlocks] = useState(undefined as InstructionBlock[]);
+  const [instructionsToSend, setInstructionsToSend] = useState(undefined as Instruction[][])
 
   useEffect(() => {
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
@@ -49,7 +51,10 @@ const App: React.FC = () => {
     instructionBlocks.forEach( block => {
       instructionsToSend.push(block.instructions);
     })
-    const timeline = api.processInstructions(instructionsToSend);
+
+    // this is equivalent to "sending" instructions to our api component
+    // (it's listening for changes to its sent instructions prop)
+    setInstructionsToSend(instructionsToSend);
 
   }, [instructionBlocks]);
 
@@ -153,7 +158,7 @@ const App: React.FC = () => {
       <Sim net={network} getNodeInfo={getNodeInfo} />
 
       <div id="console" className="console">
-        <Controls setInstructions={setInstructions}/>
+        <Controls setInstructionBlocks={setInstructionBlocks}/>
   
         <div id="prompt" className="before-textarea blink">>>></div>
         {/* <span style={{color: 'red'}}>test</span> */}
@@ -171,6 +176,7 @@ const App: React.FC = () => {
         </ul>
       </div>
 
+      <Api network={network} sentInstructions={instructionsToSend} />
     </div>
   );
 }
