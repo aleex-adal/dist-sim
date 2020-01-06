@@ -3,8 +3,10 @@ import './App.css';
 import menu from './resource/menu.svg';
 
 import Sim from './component/Sim/Sim';
-import Network from './model/Network';
 import Controls from './component/Controls/Controls';
+
+import * as api from './util/sim-api';
+import { InstructionBlock, Instruction } from './util/interpret';
 
 const App: React.FC = () => {
   const [menuClasses, setMenuClasses] = useState(['menu', 'overlay']);
@@ -12,9 +14,10 @@ const App: React.FC = () => {
   // this needs to be a pointer or the tsx element will just do a primitive string copy and won't receive changes
   const [nodeInfoClasses, setNodeInfoClasses] = useState(['node-info']);
   const [runButtonClasses, setRunButtonClasses] = useState(['run']);
-  const [textAreaValue, setTextAreaValue] = useState('');
+  const [network, setNetwork] = useState(api.generateNetwork(10));
 
-  const [network, setNetwork] = useState(new Network(10));
+  let ib: InstructionBlock[];
+  const [instructionBlocks, setInstructions] = useState(ib);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
@@ -36,8 +39,26 @@ const App: React.FC = () => {
 
   }, []);
 
+  useEffect(() => {
+
+    if (!instructionBlocks) {
+      return;
+    }
+
+    let instructionsToSend: Instruction[][] = [];
+    instructionBlocks.forEach( block => {
+      instructionsToSend.push(block.instructions);
+    })
+    const timeline = api.processInstructions(instructionsToSend);
+
+  }, [instructionBlocks]);
+
   const detectClickOffTextArea = (event: MouseEvent) => {
-    if (!document.getElementById("textarea").contains(event.target as Node)) {
+    
+    // only scroll up if the run button is not active. if it is active, controls component will scroll up for us
+    const runButtonActive = document.getElementById("run").contains(event.target as Node) && document.getElementById("run").classList.length > 1;
+
+    if (!document.getElementById("textarea").contains(event.target as Node) && !runButtonActive) {
       scrollToTop();
       document.removeEventListener('click', detectClickOffTextArea);
     }
@@ -132,9 +153,10 @@ const App: React.FC = () => {
       <Sim net={network} getNodeInfo={getNodeInfo} />
 
       <div id="console" className="console">
-        <Controls />
+        <Controls setInstructions={setInstructions}/>
   
         <div id="prompt" className="before-textarea blink">>>></div>
+        {/* <span style={{color: 'red'}}>test</span> */}
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={handleTextAreaInput}></textarea>
       </div>
       <div id="end"></div>

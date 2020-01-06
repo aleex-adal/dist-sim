@@ -1,11 +1,22 @@
 import Network from "../model/Network";
 
-export default function compile(input: string): [{instr: string[], status: string}] {
+export interface Instruction {
+    id: number,
+    text: string
+}
+
+export interface InstructionBlock {
+    instructions: Instruction[],
+    status: string
+}
+
+export function compile(input: string): InstructionBlock[] {
 
     input = input.toLowerCase();
 
     const inputCommands = input.split("\n");
-    let instructionBlocks: [{instr: string[], status: string}];
+    let instructionBlocks: InstructionBlock[];
+    let nextInstructionId = 0;
     let ibIndex = 0;
 
     let normal = true;   // execute all instructions, don't wait
@@ -32,19 +43,21 @@ export default function compile(input: string): [{instr: string[], status: strin
         }
 
         if (!instructionBlocks) {
-            instructionBlocks = [{instr: [str], status: 'new'}];
+            instructionBlocks = [
+                {instructions: [{id: nextInstructionId++, text: str}], status: 'new'}
+            ];
             continue;
         }  
 
         if (normal && !instructionBlocks[ibIndex]) {
-            instructionBlocks.push({instr: [str], status: 'new'});
+            instructionBlocks.push({instructions: [{id: nextInstructionId++, text: str}], status: 'new'});
             ibIndex = instructionBlocks.length - 1; // set ibIndex to the current instruction block that we just initialized
 
         } else if (normal && instructionBlocks[ibIndex]) {
-            instructionBlocks[ibIndex].instr.push(str);
+            instructionBlocks[ibIndex].instructions.push({id: nextInstructionId++, text: str});
 
         } else if (inOrder) {
-            instructionBlocks.push({instr: [str], status: 'new'});
+            instructionBlocks.push({instructions: [{id: nextInstructionId++, text: str}], status: 'new'});
             ibIndex = instructionBlocks.length; // set ibIndex to the block AFTER this one ie it doesn't exist yet
         }
     }
@@ -57,7 +70,7 @@ export function interpretAllCommands(something: any): any {
     return undefined;
 }
 
-export function interpretOneCommand(input: string, network: Network) {
+export function checkCommandSyntax(input: string) {
 
     let inputObj  = {};
 
@@ -77,7 +90,7 @@ export function interpretOneCommand(input: string, network: Network) {
         try {
             inputObj = JSON.parse(input.slice(jsonStartIndex, jsonEndIndex));
         } catch (e) {
-            return {failure: true, msg: 'entered JSON string ' + input.slice(jsonStartIndex, jsonEndIndex) + ' was invalid. Did you remember to put quotes?'};
+            return {failure: true, msg: 'entered JSON string \'' + input.slice(jsonStartIndex, jsonEndIndex) + '\' was invalid. Did you remember to put quotes?'};
         }
 
         input = input.substring(0, jsonStartIndex);
@@ -108,7 +121,7 @@ export function interpretOneCommand(input: string, network: Network) {
         nodeId = parseInt(inputArr[i]);
         i++;
     } else {
-        return {failure: true, msg: 'Node id ' + inputArr[i] + ' is invalid'};
+        return {failure: true, msg: 'Node id \'' + inputArr[i] + '\' is invalid'};
     }
 
     if (inputArr[i] === 'read' || inputArr[i] === 'r') {
@@ -122,7 +135,7 @@ export function interpretOneCommand(input: string, network: Network) {
             itemId = parseInt(inputArr[i]);
 
         } else {
-            return {failure: true, msg: 'Item id must be a number, input was ' + inputArr[i]};
+            return {failure: true, msg: 'Item id must be a number, input was \'' + inputArr[i] + '\''};
         }
 
     } else if (inputArr[i] === 'update' || inputArr[i] === 'u' || inputArr[i] === 'write' || inputArr[i] === 'w') {
@@ -137,7 +150,7 @@ export function interpretOneCommand(input: string, network: Network) {
             i++;
 
         } else {
-            return {failure: true, msg: 'Item id must be a number, input was ' + inputArr[i]};
+            return {failure: true, msg: 'Item id must be a number, input was \'' + inputArr[i] + '\''};
         }
 
     } else if (inputArr[i] === 'insert' || inputArr[i] === 'i') {
@@ -159,12 +172,14 @@ export function interpretOneCommand(input: string, network: Network) {
             itemId = parseInt(inputArr[i]);
             i++;
         } else {
-            return {failure: true, msg: 'Item id must be a number, input was ' + inputArr[i]};
+            return {failure: true, msg: 'Item id must be a number, input was \'' + inputArr[i] + '\''};
         }
 
     } else {
-        return {failure: true, msg: 'operation ' + inputArr[i] + ' not recognized'};
+        return {failure: true, msg: 'operation \'' + inputArr[i] + '\' not recognized'};
     }
+
+    return {failure: false};
 
     // network.getNode(nodeId)
     //return node.op(itemId | JSON)
