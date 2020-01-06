@@ -1,2 +1,7 @@
 node_modules
 build
+.idea/checkstyle-idea.xml
+.idea/dist-sim.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
