@@ -10,9 +10,6 @@ interface ApiProps {
 }
 
 const Api: React.FunctionComponent<ApiProps> = (props) => {
-
-    const [ numCommandsCompleted, setNumCommandsCompleted ] = useState(0);
-    const [ totalCommands, setTotalCommands ] = useState(0);
     
     useEffect(() => {
         if (!props.sentInstructions) {
@@ -24,48 +21,61 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
             total += instrList.length;
         });
 
-        setTotalCommands(total);
+        let numCompleted = 0;
+
+        // setTotalCommands(total);
 
         console.log('api received instr: ', props.sentInstructions);
 
         const allResponses = [];
 
-        props.sentInstructions.forEach( instrList => {
-            for (let i = 0; i < instrList.length; i++) {
+        executeAllCommands(props.sentInstructions, 0);
 
-                const orig = instrList[i];
-                const response = interpretOneCommand(orig.text, true, props.network);
-                if (response instanceof Promise) {
-                    response.then( (res) => {
-                        setNumCommandsCompleted(numCommandsCompleted + 1);
+        /** 
+         node 0 read 5
+         node 0 read 6
 
-                        orig.res = res;
-                        console.log('instr ' + JSON.stringify(orig) + ' received res ' + JSON.stringify(res));
-                    });
-                }
-            }
-        });
-
-        const response = new Promise( (resolve, reject) => {
-            setTimeout(() => resolve({msg: 'hello!'}), 5000);
-        } );
-        props.setApiResponse(response);
+         in-order
+         node 0 write 7 {"hello": "hello!"}
+         node 0 write 7 {"hello": "second edit!"}
+        */
 
     }, [props.sentInstructions]);
 
 
-    useEffect( () => {
-        if (!props.sentInstructions) {
+    const executeAllCommands = (instrLists: Instruction[][], index: number) => {
+
+        if (index === instrLists.length) {
+            console.log('completed all commands!');
             return;
         }
 
-        if (numCommandsCompleted === totalCommands && numCommandsCompleted !== 0 && totalCommands !== 0) {
-            console.log('completed all commands!');
-            console.log(JSON.stringify(props.sentInstructions));
-            setNumCommandsCompleted(0);
-            setTotalCommands(0);
+        const currList = instrLists[index];
+        const totalInList = currList.length;
+        let numCompletedInList = 0;
+
+        // all commands in this single block/list execute concurrently, but we only execute the next block/list
+        // when all commands in the current block/list resolve. This preserves the normal vs in-order execution methods
+        for (let i = 0; i < currList.length; i++) {
+
+            const originalInstr = currList[i];
+            const response = interpretOneCommand(originalInstr.text, true, props.network);
+            if (response instanceof Promise) {
+                response.then( (res) => {
+                    numCompletedInList++;
+
+                    originalInstr.res = res;
+                    console.log('instr: ' + JSON.stringify(originalInstr) + ' received res: ' + JSON.stringify(res));
+
+                    if (numCompletedInList === totalInList) {
+                        console.log('completed this list/block!');
+                        console.log(JSON.stringify(currList));
+                        return executeAllCommands(instrLists, ++index);
+                    }
+                });
+            }
         }
-    }, [numCommandsCompleted]);
+    };
 
     return ( <></> ); // nothing, this component's only purpose is to simulate an api
 }
