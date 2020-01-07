@@ -47,7 +47,7 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
 
         if (index === instrLists.length) {
             console.log('completed all commands!');
-            return;
+            return {done: true};
         }
 
         const currList = instrLists[index];
