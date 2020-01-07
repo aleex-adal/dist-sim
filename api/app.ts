@@ -22,15 +22,15 @@ app.listen(4000, async () => {
     await n.read(36)
   );
 
-  // n.update(36, { fruit: 'this update should be delayed' }, 5000)
-  // .then( (val: any) => {
-  //   console.log('{\n    item:  ' + JSON.stringify(val.item) + '\n    dataNode\'s clock:  ' + val.sourceClock + '\n    requestNode\'s clock:  ' + val.requestClock + '\n    msg:  ' + val.msg + '\n}');
-  // });
+  n.update(36, { fruit: 'this update should be delayed' }, 5000)
+  .then( (val: any) => {
+    console.log('{\n    item:  ' + JSON.stringify(val.item) + '\n    dataNode\'s clock:  ' + val.sourceClock + '\n    requestNode\'s clock:  ' + val.requestClock + '\n    msg:  ' + val.msg + '\n}');
+  });
 
-  // n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'})
-  // .then( (val: any) => {
-  //   console.log('{\n    item:  ' + JSON.stringify(val.item) + '\n    dataNode\'s clock:  ' + val.sourceClock + '\n    requestNode\'s clock:  ' + val.requestClock + '\n    msg:  ' + val.msg + '\n}');
-  // });
+  n.update(36, { fruit: 'YOLO_SWAG', extraField: 'This is an extra field!'})
+  .then( (val: any) => {
+    console.log('{\n    item:  ' + JSON.stringify(val.item) + '\n    dataNode\'s clock:  ' + val.sourceClock + '\n    requestNode\'s clock:  ' + val.requestClock + '\n    msg:  ' + val.msg + '\n}');
+  });
 
 
   // console.log(

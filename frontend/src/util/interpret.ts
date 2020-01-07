@@ -2,7 +2,8 @@ import Network from "../model/Network";
 
 export interface Instruction {
     id: number,
-    text: string
+    text: string,
+    res?: any,
 }
 
 export interface InstructionBlock {
@@ -194,8 +195,18 @@ export function interpretOneCommand(input: string, executeCommands: boolean, net
     }
 
     // now, actually execute the commands lol
+    const n = network.getNode(nodeId);
 
+    if (op === 'read') {
+        return n.read(itemId);
 
-    // network.getNode(nodeId)
-    //return node.op(itemId | JSON)
+    } else if (op === 'delete') {
+        return n.delete(itemId);
+
+    } else if (op === 'insert') {
+        return n.insert(inputObj);
+ 
+    } else if (op === 'update') {
+        return n.update(itemId, inputObj);
+    }
 }

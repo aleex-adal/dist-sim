@@ -75,6 +75,8 @@ export default class node {
             payload.dir = 'in';
             payload.id = payload.path[--payload.pathIndex];
 
+            console.log('node found item: ' + JSON.stringify(payload.item));
+
             return this.ping(payload);
         
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
@@ -554,14 +556,14 @@ export default class node {
         let doIncomingWrite = false;
 
         if (this.mostRecentWrite === undefined) {
-            console.log('VC: returning true because this is the first write');
+            // console.log('VC: returning true because this is the first write');
             return true;
         }
         
 
-        console.log('inside VC stuff');
-        console.log('mostRecentWrite: ' + JSON.stringify(this.mostRecentWrite));
-        console.log('payload sourceClock: ' + JSON.stringify(payload.sourceClock));
+        // console.log('inside VC stuff');
+        // console.log('mostRecentWrite: ' + JSON.stringify(this.mostRecentWrite));
+        // console.log('payload sourceClock: ' + JSON.stringify(payload.sourceClock));
 
         for ( let i = 0; i < this.mostRecentWrite.clock.length; i++) {
             if (this.mostRecentWrite.clock[i] < payload.sourceClock[i]) {
@@ -572,7 +574,7 @@ export default class node {
             }
         } // else, we won't do this write because it is behind the most recent write. It is logically in the past
 
-        console.log('doIncomingWrite is ' + doIncomingWrite);
+        // console.log('doIncomingWrite is ' + doIncomingWrite);
         return doIncomingWrite;
     }
 }

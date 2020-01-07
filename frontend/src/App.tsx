@@ -19,7 +19,8 @@ const App: React.FC = () => {
 
   // initialize state to null values but keep those suckers typed
   const [instructionBlocks, setInstructionBlocks] = useState(undefined as InstructionBlock[]);
-  const [instructionsToSend, setInstructionsToSend] = useState(undefined as Instruction[][])
+  const [instructionsToSend, setInstructionsToSend] = useState(undefined as Instruction[][]);
+  const [apiResponse, setApiResponse] = useState(undefined as Promise<any>);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
@@ -54,9 +55,25 @@ const App: React.FC = () => {
 
     // this is equivalent to "sending" instructions to our api component
     // (it's listening for changes to its sent instructions prop)
+
+    // if using a real api, we would resolve the promise returned by the
+    // request here. Instead, we detect the returned promise and
+    // resolve it when it returns from the "api" below
     setInstructionsToSend(instructionsToSend);
 
   }, [instructionBlocks]);
+
+  useEffect( () => {
+
+    if (!apiResponse) {
+      return;
+    }
+
+    apiResponse.then( (val) => {
+      console.log('response promise resolved! ' + JSON.stringify(val));
+    });
+  
+  }, [apiResponse]);
 
   const detectClickOffTextArea = (event: MouseEvent) => {
     
@@ -176,7 +193,7 @@ const App: React.FC = () => {
         </ul>
       </div>
 
-      <Api network={network} sentInstructions={instructionsToSend} />
+      <Api network={network} sentInstructions={instructionsToSend} setApiResponse={setApiResponse} />
     </div>
   );
 }
