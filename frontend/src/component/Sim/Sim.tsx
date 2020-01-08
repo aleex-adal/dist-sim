@@ -13,8 +13,13 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		// TODO: make this work for resizing too
 		// window.addEventListener('resize', sizeOuterCircle);
 		sizeOuterCircle();
-		generateNodes(props.net.numNodes);
 	}, []);
+
+	useEffect(() => {
+		if (props.net) {
+			generateNodes(props.net.numNodes);
+		}
+	}, [props.net]);
 
 	const sizeOuterCircle = () => {
 		var width = document.getElementById("sim-wrapper").offsetWidth;

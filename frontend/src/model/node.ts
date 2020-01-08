@@ -75,8 +75,6 @@ export default class node {
             payload.dir = 'in';
             payload.id = payload.path[--payload.pathIndex];
 
-            console.log('node found item: ' + JSON.stringify(payload.item));
-
             return this.ping(payload);
         
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {

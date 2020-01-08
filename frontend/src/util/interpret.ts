@@ -99,7 +99,11 @@ export function interpretOneCommand(input: string, executeCommands: boolean, net
         }
     }
 
-    if (jsonStartIndex && jsonEndIndex) {
+    if (jsonStartIndex && !jsonEndIndex) {
+        return {failure: true, msg: 'entered JSON string \'' + input.slice(jsonStartIndex, input.length - 1) + '\' was missing a closing bracket'};
+    }
+
+    if (jsonStartIndex) {
         try {
             inputObj = JSON.parse(input.slice(jsonStartIndex, jsonEndIndex));
         } catch (e) {

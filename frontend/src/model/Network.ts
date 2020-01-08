@@ -1,5 +1,6 @@
 import node from "./node";
 import DataRange from "./DataRange";
+import { Subject } from "rxjs";
 
 export default class Network {
     nodeMap: Map<number, node> = new Map();
@@ -7,7 +8,7 @@ export default class Network {
 
     // generates a biased graph, but apparently it's similar to real networks
     // TODO: generate a truly random graph
-    constructor(numNodes: number, dataRangeSize?: number) {
+    constructor(numNodes: number, dataRangeSize?: number, eventStream?: Subject<any>) {
         if (!dataRangeSize) {
             dataRangeSize = 5;
         }
@@ -56,7 +57,7 @@ export default class Network {
 
             // populate node's initial data
             for (let i = 0; i < dataRangeSize; i++) {
-                n.dataSlice.set(initialSlice + i, {fruit: this.getRandomFruit(initialSlice + i), location: 'in ma head'});
+                n.dataSlice.set(initialSlice + i, {fruit: this.getRandomFruit(initialSlice + i)});
             }
 
             this.nodeMap.set(n.id, n);

@@ -1,16 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import Network from "../../model/Network";
 import { Instruction, interpretOneCommand } from "../../util/interpret";
+import {Subject} from 'rxjs';
 
 interface ApiProps {
     numNodes?: number,
     network: Network,
+    setNetwork: React.Dispatch<React.SetStateAction<Network>>,
     sentInstructions: Instruction[][],
     setApiResponse: React.Dispatch<React.SetStateAction<Promise<any>>>,
 }
 
 const Api: React.FunctionComponent<ApiProps> = (props) => {
-    
+
+    const [ eventStream ] = useState(new Subject<any>());
+
+    useEffect( () => {
+        props.setNetwork(generateNetwork(10));
+    }, []);
+
+    const generateNetwork = (numNodes: number) => {
+        return new Network(numNodes, 3, eventStream);
+    }
+
     useEffect(() => {
         if (!props.sentInstructions) {
             return;
@@ -47,6 +59,7 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
 
         if (index === instrLists.length) {
             console.log('completed all commands!');
+            console.log(props.sentInstructions);
             return {done: true};
         }
 
@@ -65,11 +78,10 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
                     numCompletedInList++;
 
                     originalInstr.res = res;
-                    console.log('instr: ' + JSON.stringify(originalInstr) + ' received res: ' + JSON.stringify(res));
+                    console.log('instr: ' + originalInstr.id + 'completed');
 
                     if (numCompletedInList === totalInList) {
                         console.log('completed this list/block!');
-                        console.log(JSON.stringify(currList));
                         return executeAllCommands(instrLists, ++index);
                     }
                 });
@@ -78,10 +90,10 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
     };
 
     return ( <></> ); // nothing, this component's only purpose is to simulate an api
-}
+};
 
-export function generateNetwork(numNodes: number): Network {
-    return new Network(numNodes);
-}
+// export function generateNetwork(numNodes: number): Network {
+//     return new Network(numNodes, 5, eventStream);
+// }
 
 export default Api;

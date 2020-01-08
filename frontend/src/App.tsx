@@ -4,9 +4,10 @@ import menu from './resource/menu.svg';
 
 import Sim from './component/Sim/Sim';
 import Controls from './component/Controls/Controls';
-import Api, { generateNetwork } from './component/Api/Api';
+import Api from './component/Api/Api';
 
 import { InstructionBlock, Instruction } from './util/interpret';
+import Network from './model/Network';
 
 const App: React.FC = () => {
   const [menuClasses, setMenuClasses] = useState(['menu', 'overlay']);
@@ -15,7 +16,8 @@ const App: React.FC = () => {
   const [nodeInfoClasses, setNodeInfoClasses] = useState(['node-info']);
   const [runButtonClasses, setRunButtonClasses] = useState(['run']);
 
-  const [network, setNetwork] = useState(generateNetwork(10));
+  // this is set when the API component mounts. For a real API, make the request for a network object from the real API
+  const [network, setNetwork] = useState(undefined as Network);
 
   // initialize state to null values but keep those suckers typed
   const [instructionBlocks, setInstructionBlocks] = useState(undefined as InstructionBlock[]);
@@ -23,6 +25,10 @@ const App: React.FC = () => {
   const [apiResponse, setApiResponse] = useState(undefined as Promise<any>);
 
   useEffect(() => {
+    if (!network) {
+      return;
+    }
+
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
     document.getElementById("textarea").style.height = (document.getElementById("console").offsetHeight - 30 - document.getElementById("run").offsetHeight) + 'px';
     document.getElementById('new-svg').addEventListener('click',
@@ -40,7 +46,7 @@ const App: React.FC = () => {
       document.addEventListener('click', detectClickOffTextArea);
     });
 
-  }, []);
+  }, [network]);
 
   useEffect(() => {
 
@@ -56,9 +62,9 @@ const App: React.FC = () => {
     // this is equivalent to "sending" instructions to our api component
     // (it's listening for changes to its sent instructions prop)
 
-    // if using a real api, we would resolve the promise returned by the
+    // if using a real api, we would handle the promise returned by the
     // request here. Instead, we detect the returned promise and
-    // resolve it when it returns from the "api" below
+    // handle it when it returns from the "api" below
     setInstructionsToSend(instructionsToSend);
 
   }, [instructionBlocks]);
@@ -178,7 +184,6 @@ const App: React.FC = () => {
         <Controls setInstructionBlocks={setInstructionBlocks}/>
   
         <div id="prompt" className="before-textarea blink">>>></div>
-        {/* <span style={{color: 'red'}}>test</span> */}
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={handleTextAreaInput}></textarea>
       </div>
       <div id="end"></div>
@@ -193,7 +198,7 @@ const App: React.FC = () => {
         </ul>
       </div>
 
-      <Api network={network} sentInstructions={instructionsToSend} setApiResponse={setApiResponse} />
+      <Api network={network} setNetwork={setNetwork} sentInstructions={instructionsToSend} setApiResponse={setApiResponse} />
     </div>
   );
 }
