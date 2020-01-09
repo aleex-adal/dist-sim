@@ -5,19 +5,20 @@ import { Subject } from "rxjs";
 export default class Network {
     nodeMap: Map<number, node> = new Map();
     numNodes: number = undefined;
+    eventStream: Subject<any> = undefined;
 
     // generates a biased graph, but apparently it's similar to real networks
     // TODO: generate a truly random graph
-    constructor(numNodes: number, dataRangeSize?: number, eventStream?: Subject<any>) {
-        if (!dataRangeSize) {
-            dataRangeSize = 5;
-        }
+    constructor(numNodes: number, inputDataRangeSize?: number, inputEventStream?: Subject<any>) {
+
+        const dataRangeSize = inputDataRangeSize ? inputDataRangeSize : 5;
+        this.eventStream = inputEventStream ? inputEventStream : new Subject<any>();
 
         this.numNodes = numNodes;
 
         // populate nodes
         for (let i = 0; i < numNodes; i++) {
-            let n = new node(i);
+            let n = new node(i, this.eventStream);
 
             if (i > 0) {
                 let connectionsToPush = [];

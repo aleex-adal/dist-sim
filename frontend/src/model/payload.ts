@@ -12,4 +12,5 @@ export default class payload {
     dir?: string;
     sourceClock?: number[];
     requestClock?: number[];
+    instrId?: number;
 }

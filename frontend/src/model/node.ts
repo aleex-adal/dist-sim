@@ -3,6 +3,8 @@ import payload from "./payload";
 import DataRange from "./DataRange";
 import OrderedMap from "./OrderedMap";
 
+import { Subject } from "rxjs";
+
 export default class node {
     id: number = 0;
     connections: number[] = [];
@@ -16,40 +18,40 @@ export default class node {
     clock: number[] = [];
     mostRecentWrite: {clock: number[], itemId: number, item: any} = undefined;
 
+    eventStream: Subject<any> = undefined;
 
-    /**
-     * TODO: add vector clocks
-     * test that vector clocks function correctly
-     * 
-     * 
-     * for concurrent inserts, objects should be stored in arrival order and should not be "switched". if a stale node accidentally sends too many inserts
-     * to one node the target node will know because it's data range will fill up and the source node will not be sending a new data range. At that point
-     * it should determine a new node with least data and forward inserts to the new node.
-     * 
-     * test stale node write with concurrent updated node write. Target node should read vector clocks and if stale write arrives second, it should
-     * read that the stale vector clock is smaller than the updated write's vector clock, not do the stale write and update stale vector clock to be
-     * more recent than the node that was previously updated
-     * 
-     * The above test cases should work when the instructions come from the same node concurrently because the vector clocks from the source node
-     * will indicate proper order. Cool!
-     * 
-     */
-
-    processPayload: (payload: payload) => Promise<Object> = 
-    (payload) => {
+    processPayload: (payload: payload, networkLatency: number) => Promise<Object> = 
+    (payload, networkLatency) => {
         if (payload.hasOwnProperty("msg") && payload.msg === "Hello!") {
             return Promise.resolve("Hello from node " + this.id);
 
         } else if (payload.pathIndex !== (payload.path.length - 1) && payload.pathIndex !== 0) {
+
+            // emit event
+            this.eventStream.next({
+                msg: 'middle node ' + this.id + ' received payload',
+                instrId: payload.instrId,
+                latency: networkLatency,
+                payload: JSON.parse(JSON.stringify(payload))
+            });
+
             // don't update clocks if the node is simply forwarding the message. Pretend like sourceNode is sending
             // directly to targetNode
-
             if (payload.dir === 'out') {
                 ++payload.pathIndex;
             }else {
                 --payload.pathIndex;
             }
             payload.id = payload.path[payload.pathIndex];
+
+            // emit event
+            this.eventStream.next({
+                msg: 'middle node ' + this.id + ' changed payload path, is forwarding',
+                instrId: payload.instrId,
+                latency: networkLatency,
+                payload: JSON.parse(JSON.stringify(payload))
+            });
+
             return this.ping(payload);
 
         } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
@@ -234,18 +236,22 @@ export default class node {
 
     };
 
-    constructor(id: number) {
+    constructor(id: number, eventStream?: Subject<any>) {
         this.id = id;
+
+        if (eventStream) {
+            this.eventStream = eventStream;
+        }
     }
 
-    ping(payload: payload, delay?: number): Promise<Object> {
+    ping(payload: payload, additionalDelay?: number): Promise<Object> {
 
         if (this.id < 0) {
             return Promise.resolve('node: I am an invalid node!')
 
         } else if (payload.path.length === 1 && payload.path[0] === this.id) {
             payload.pathIndex = 0;
-            return this.processPayload(payload);
+            return this.processPayload(payload, 0);
         }
 
         const nodeToPing = this.nodeMap.get(payload.id);
@@ -253,11 +259,11 @@ export default class node {
             return Promise.resolve('invalid node id requested');
         }
 
-        if (!delay) {
-            delay = 0;
+        if (!additionalDelay) {
+            additionalDelay = 0;
         }
 
-        return this.connections.includes(payload.id) ? nodeToPing.respond(payload, delay) : Promise.resolve("node: this node is not connected to id " + payload.id)
+        return this.connections.includes(payload.id) ? nodeToPing.respond(payload, additionalDelay) : Promise.resolve("node: this node is not connected to id " + payload.id)
     }
 
     respond(payload: payload, additionalDelay?: number): Promise<Object> {
@@ -265,11 +271,11 @@ export default class node {
             const totalDelay = additionalDelay ? this.delay() + additionalDelay : this.delay()
 
             setTimeout(() => {
-                resolve();
+                resolve({networkLatency: totalDelay});
             }, totalDelay);
         })
         .then(
-            () => this.processPayload(payload)
+            (val) => this.processPayload(payload, (val as any).networkLatency)
         );
     }
 
@@ -292,7 +298,8 @@ export default class node {
         });
     }
 
-    read(itemId: number | Object): Promise<Object> {
+    read(itemId: number | Object, additionalDelay?: number, instrId?: number): Promise<Object> {
+
         this.clock[this.id]++;
         // console.log('node id ' + this.id + ' sending read: ' + this.clock);
 
@@ -324,7 +331,26 @@ export default class node {
             }
 
             let pathIndex = path[0] === this.id ? 1 : 0;
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'r', itemId: itemId, dir: 'out', sourceClock: JSON.parse(JSON.stringify(this.clock))});
+
+            const payload = {
+                id: path[pathIndex],
+                path: path,
+                pathIndex: pathIndex,
+                op: 'r',
+                itemId: itemId,
+                dir: 'out',
+                sourceClock: JSON.parse(JSON.stringify(this.clock)),
+                instrId: instrId
+            };
+
+            // emit event
+            this.eventStream.next({
+                msg: 'node ' + this.id + ' emitting initial payload for read op',
+                instrId: payload.instrId,
+                payload: JSON.parse(JSON.stringify(payload))
+            });
+
+            return this.ping(payload, additionalDelay);
         }
 
         // else it's an object, non-index search
@@ -332,13 +358,9 @@ export default class node {
         return Promise.resolve({result: 'unknown'});
     }
 
-    update(itemId: number | Object, changes: Object, delay?: number): Promise<Object> {
+    update(itemId: number | Object, changes: Object, additionalDelay?: number, instrId?: number): Promise<Object> {
         this.clock[this.id]++;
-        if ((changes as any).deleted) {
-            // console.log('node id ' + this.id + ' sending delete: ' + this.clock);
-        } else {
-            // console.log('node id ' + this.id + ' sending update: ' + this.clock);
-        }
+        const updateOrDelete = (changes as any).deleted ? 'delete' : 'update';
 
         if (typeof itemId === 'number') {
             let targetNode = -1;
@@ -368,8 +390,27 @@ export default class node {
             }
 
             let pathIndex = path[0] === this.id ? 1 : 0;
+
+            const payload = {
+                id: path[pathIndex],
+                path: path,
+                pathIndex: pathIndex,
+                op: 'u',
+                itemId: itemId,
+                item: changes,
+                dir: 'out',
+                sourceClock: JSON.parse(JSON.stringify(this.clock)),
+                instrId: instrId
+            };
+
+            // emit event
+            this.eventStream.next({
+                msg: 'node ' + this.id + ' emitting initial payload for ' + updateOrDelete + ' op',
+                instrId: payload.instrId,
+                payload: JSON.parse(JSON.stringify(payload))
+            });
             
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'u', itemId: itemId, item: changes, dir: 'out', sourceClock: JSON.parse(JSON.stringify(this.clock))}, delay);
+            return this.ping(payload, additionalDelay);
         }
 
         // else it's an object, non-index search
@@ -377,7 +418,7 @@ export default class node {
         return Promise.resolve({result: 'unknown'});
     }
 
-    insert(item: Object | Object[]): Promise<Object> {
+    insert(item: Object | Object[], additionalDelay?: number, instrId?: number): Promise<Object> {
         this.clock[this.id]++;
         // console.log('node id ' + this.id + ' sending insert: ' + this.clock);
 
@@ -401,8 +442,26 @@ export default class node {
             }
  
             let pathIndex = path[0] === this.id ? 1 : 0;
+
+            const payload = {
+                id: path[pathIndex],
+                path: path,
+                pathIndex: pathIndex,
+                op: 'i',
+                item: item,
+                dir: 'out',
+                sourceClock: JSON.parse(JSON.stringify(this.clock)),
+                instrId: instrId
+            };
+
+            // emit event
+            this.eventStream.next({
+                msg: 'node ' + this.id + ' emitting initial payload for insert op',
+                instrId: payload.instrId,
+                payload: JSON.parse(JSON.stringify(payload))
+            });
              
-            return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, dir: 'out', sourceClock: JSON.parse(JSON.stringify(this.clock))});
+            return this.ping(payload, additionalDelay);
         }
 
         // else assign the new datarange to a node at random
@@ -455,11 +514,31 @@ export default class node {
         }
 
         let pathIndex = path[0] === this.id ? 1 : 0;
-        return this.ping({id: path[pathIndex], path: path, pathIndex: pathIndex, op: 'i', item: item, newRange: newRange, dir: 'out', sourceClock: JSON.parse(JSON.stringify(this.clock))});
+
+        const payload = {
+            id: path[pathIndex],
+            path: path,
+            pathIndex: pathIndex,
+            op: 'i',
+            item: item,
+            newRange: newRange,
+            dir: 'out',
+            sourceClock: JSON.parse(JSON.stringify(this.clock)),
+            instrId: instrId
+        };
+
+        // emit event
+        this.eventStream.next({
+            msg: 'node ' + this.id + ' emitting initial payload for insert op',
+            instrId: payload.instrId,
+            payload: JSON.parse(JSON.stringify(payload))
+        });
+
+        return this.ping(payload, additionalDelay);
     }
 
-    delete(itemId: number | Object): Promise<Object> {
-        return this.update(itemId, {deleted: true});
+    delete(itemId: number | Object, additionalDelay?: number, instrId?: number): Promise<Object> {
+        return this.update(itemId, {deleted: true}, additionalDelay, instrId);
     }
 
     recover() {
@@ -574,5 +653,11 @@ export default class node {
 
         // console.log('doIncomingWrite is ' + doIncomingWrite);
         return doIncomingWrite;
+    }
+
+    emitEvent(event: any): void {
+        if (this.eventStream) {
+            this.eventStream.next(event);
+        }
     }
 }

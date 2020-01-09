@@ -92,8 +92,4 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
     return ( <></> ); // nothing, this component's only purpose is to simulate an api
 };
 
-// export function generateNetwork(numNodes: number): Network {
-//     return new Network(numNodes, 5, eventStream);
-// }
-
 export default Api;
