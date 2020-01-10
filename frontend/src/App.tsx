@@ -22,7 +22,7 @@ const App: React.FC = () => {
   // initialize state to null values but keep those suckers typed
   const [instructionBlocks, setInstructionBlocks] = useState(undefined as InstructionBlock[]);
   const [instructionsToSend, setInstructionsToSend] = useState(undefined as Instruction[][]);
-  const [apiResponse, setApiResponse] = useState(undefined as Promise<any>);
+  const [apiResponse, setApiResponse] = useState(undefined);
 
   useEffect(() => {
     if (!network) {
@@ -70,14 +70,11 @@ const App: React.FC = () => {
   }, [instructionBlocks]);
 
   useEffect( () => {
-
     if (!apiResponse) {
       return;
     }
 
-    apiResponse.then( (val) => {
-      console.log('response promise resolved! ' + JSON.stringify(val));
-    });
+    console.log('received api response! ', apiResponse);
   
   }, [apiResponse]);
 

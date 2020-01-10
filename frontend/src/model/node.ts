@@ -20,8 +20,8 @@ export default class node {
 
     eventStream: Subject<any> = undefined;
 
-    processPayload: (payload: payload, networkLatency: number) => Promise<Object> = 
-    (payload, networkLatency) => {
+    processPayload: (payload: payload, networkLatency: number, additionalDelay: number) => Promise<Object> = 
+    (payload, networkLatency, additionalDelay) => {
         if (payload.hasOwnProperty("msg") && payload.msg === "Hello!") {
             return Promise.resolve("Hello from node " + this.id);
 
@@ -29,9 +29,12 @@ export default class node {
 
             // emit event
             this.eventStream.next({
-                msg: 'middle node ' + this.id + ' received payload',
                 instrId: payload.instrId,
-                latency: networkLatency,
+                nodeId: this.id,
+                dir: 'recv',
+                networkLatency: networkLatency,
+                additionalDelay: additionalDelay,
+                msg: 'middle node ' + this.id + ' received payload',
                 payload: JSON.parse(JSON.stringify(payload))
             });
 
@@ -46,15 +49,27 @@ export default class node {
 
             // emit event
             this.eventStream.next({
-                msg: 'middle node ' + this.id + ' changed payload path, is forwarding',
                 instrId: payload.instrId,
-                latency: networkLatency,
+                nodeId: this.id,
+                dir: 'send',
+                msg: 'middle node ' + this.id + ' changed payload path, is forwarding',
                 payload: JSON.parse(JSON.stringify(payload))
             });
 
             return this.ping(payload);
 
         } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            // emit event
+            this.eventStream.next({
+                instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'recv',
+                networkLatency: networkLatency,
+                additionalDelay: additionalDelay,
+                msg: 'final node ' + this.id + ' received payload',
+                payload: JSON.parse(JSON.stringify(payload))
+            });
+
             this.syncAndIncrementClock(payload.sourceClock);
             payload.requestClock = payload.sourceClock;
             payload.sourceClock = JSON.parse(JSON.stringify(this.clock));
@@ -71,15 +86,39 @@ export default class node {
             }
 
             let item = this.dataSlice.get(payload.itemId);
+
+            // item is a pointer. we need to deep copy it just in case 
+            // another operation mutates item while this response is en route
+            item = JSON.parse(JSON.stringify(item));
             
             payload.msg = msg;
             payload.item = item;
             payload.dir = 'in';
             payload.id = payload.path[--payload.pathIndex];
 
+            // emit event
+            this.eventStream.next({
+                instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'send',
+                msg: 'final node ' + this.id + ' sending read response',
+                payload: JSON.parse(JSON.stringify(payload))
+            });
+
             return this.ping(payload);
         
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            // emit event
+            this.eventStream.next({
+                instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'recv',
+                networkLatency: networkLatency,
+                additionalDelay: additionalDelay,
+                msg: 'final node ' + this.id + ' received payload',
+                payload: JSON.parse(JSON.stringify(payload))
+            });
+
             this.syncAndIncrementClock(payload.sourceClock);
 
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
@@ -119,6 +158,10 @@ export default class node {
                 };
             }
 
+            // item is a pointer. we need to deep copy it just in case 
+            // another operation mutates item while this response is en route
+            dbItem = JSON.parse(JSON.stringify(dbItem));
+
             payload.msg = msg;
             payload.item = dbItem;
             payload.dir = 'in';
@@ -128,9 +171,29 @@ export default class node {
             payload.requestClock = payload.sourceClock;
             payload.sourceClock = JSON.parse(JSON.stringify(this.clock));
 
+            // emit event
+            this.eventStream.next({
+                instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'send',
+                msg: 'final node ' + this.id + ' sending update response',
+                payload: JSON.parse(JSON.stringify(payload))
+            });
+
             return this.ping(payload);
 
         } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            // emit event
+            this.eventStream.next({
+                instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'recv',
+                networkLatency: networkLatency,
+                additionalDelay: additionalDelay,
+                msg: 'final node ' + this.id + ' received payload',
+                payload: JSON.parse(JSON.stringify(payload))
+            });
+
             this.syncAndIncrementClock(payload.sourceClock);
             
             // increments at the bottom
@@ -195,7 +258,13 @@ export default class node {
                 });
             }
 
+            // item is a pointer. we need to deep copy it just in case 
+            // another operation mutates item while this response is en route
+            retItem = JSON.parse(JSON.stringify(retItem));
+
             // changed dataRange must be updated immediately on sending node in case it is sending another insert
+            // this doesn't cover the case when the source node incorrectly sends multiple inserts to this node
+            // when it should have only sent one insert to this node
             payload.newRange = changedDataRange;
 
             payload.msg = broadcast;
@@ -207,6 +276,17 @@ export default class node {
             payload.requestClock = payload.sourceClock;
             payload.sourceClock = JSON.parse(JSON.stringify(this.clock));
             // console.log('node id ' + this.id + ' new clock: ' + this.clock);
+
+            // emit event
+            this.eventStream.next({
+                instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'send',
+                networkLatency: networkLatency,
+                additionalDelay: additionalDelay,
+                msg: 'final node ' + this.id + ' sending insert response',
+                payload: JSON.parse(JSON.stringify(payload))
+            });
 
             return this.ping(payload);
 
@@ -225,8 +305,20 @@ export default class node {
             return Promise.resolve(payload);
 
         } else if (payload.pathIndex <= 0) {
+            
             this.syncAndIncrementClock(payload.sourceClock);
             // console.log('node id ' + this.id + ' new clock: ' + this.clock);
+
+            // emit event
+            this.eventStream.next({
+                instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'recv',
+                networkLatency: networkLatency,
+                additionalDelay: additionalDelay,
+                msg: 'original node ' + this.id + ' received response',
+                payload: JSON.parse(JSON.stringify(payload))
+            });            
         
             return Promise.resolve(payload);
 
@@ -251,7 +343,7 @@ export default class node {
 
         } else if (payload.path.length === 1 && payload.path[0] === this.id) {
             payload.pathIndex = 0;
-            return this.processPayload(payload, 0);
+            return this.processPayload(payload, 0, 0);
         }
 
         const nodeToPing = this.nodeMap.get(payload.id);
@@ -268,14 +360,15 @@ export default class node {
 
     respond(payload: payload, additionalDelay?: number): Promise<Object> {
         return new Promise<Object>((resolve) => {
-            const totalDelay = additionalDelay ? this.delay() + additionalDelay : this.delay()
+            const networkLatency = this.delay();
+            const totalDelay = additionalDelay ? networkLatency + additionalDelay : networkLatency
 
             setTimeout(() => {
-                resolve({networkLatency: totalDelay});
+                resolve({networkLatency: networkLatency, additionalDelay: additionalDelay});
             }, totalDelay);
         })
         .then(
-            (val) => this.processPayload(payload, (val as any).networkLatency)
+            (val) => this.processPayload(payload, (val as any).networkLatency, (val as any).additionalDelay)
         );
     }
 
@@ -299,7 +392,6 @@ export default class node {
     }
 
     read(itemId: number | Object, additionalDelay?: number, instrId?: number): Promise<Object> {
-
         this.clock[this.id]++;
         // console.log('node id ' + this.id + ' sending read: ' + this.clock);
 
@@ -345,8 +437,10 @@ export default class node {
 
             // emit event
             this.eventStream.next({
-                msg: 'node ' + this.id + ' emitting initial payload for read op',
                 instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'send',
+                msg: 'node ' + this.id + ' emitting initial payload for read op',
                 payload: JSON.parse(JSON.stringify(payload))
             });
 
@@ -405,8 +499,10 @@ export default class node {
 
             // emit event
             this.eventStream.next({
-                msg: 'node ' + this.id + ' emitting initial payload for ' + updateOrDelete + ' op',
                 instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'send',
+                msg: 'node ' + this.id + ' emitting initial payload for ' + updateOrDelete + ' op',
                 payload: JSON.parse(JSON.stringify(payload))
             });
             
@@ -456,8 +552,10 @@ export default class node {
 
             // emit event
             this.eventStream.next({
-                msg: 'node ' + this.id + ' emitting initial payload for insert op',
                 instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'send',
+                msg: 'node ' + this.id + ' emitting initial payload for insert op',
                 payload: JSON.parse(JSON.stringify(payload))
             });
              
@@ -529,8 +627,10 @@ export default class node {
 
         // emit event
         this.eventStream.next({
-            msg: 'node ' + this.id + ' emitting initial payload for insert op',
             instrId: payload.instrId,
+            nodeId: this.id,
+            dir: 'send',
+            msg: 'node ' + this.id + ' emitting initial payload for insert op',
             payload: JSON.parse(JSON.stringify(payload))
         });
 

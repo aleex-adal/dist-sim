@@ -1,7 +1,7 @@
 import Network from "../model/Network";
 
 export interface Instruction {
-    id: number,
+    instrId: number,
     text: string,
     res?: any,
 }
@@ -45,20 +45,20 @@ export function createInstructionBlocks(input: string): InstructionBlock[] {
 
         if (!instructionBlocks) {
             instructionBlocks = [
-                {instructions: [{id: nextInstructionId++, text: str}], status: 'new'}
+                {instructions: [{instrId: nextInstructionId++, text: str}], status: 'new'}
             ];
             continue;
         }  
 
         if (normal && !instructionBlocks[ibIndex]) {
-            instructionBlocks.push({instructions: [{id: nextInstructionId++, text: str}], status: 'new'});
+            instructionBlocks.push({instructions: [{instrId: nextInstructionId++, text: str}], status: 'new'});
             ibIndex = instructionBlocks.length - 1; // set ibIndex to the current instruction block that we just initialized
 
         } else if (normal && instructionBlocks[ibIndex]) {
-            instructionBlocks[ibIndex].instructions.push({id: nextInstructionId++, text: str});
+            instructionBlocks[ibIndex].instructions.push({instrId: nextInstructionId++, text: str});
 
         } else if (inOrder) {
-            instructionBlocks.push({instructions: [{id: nextInstructionId++, text: str}], status: 'new'});
+            instructionBlocks.push({instructions: [{instrId: nextInstructionId++, text: str}], status: 'new'});
             ibIndex = instructionBlocks.length; // set ibIndex to the block AFTER this one ie it doesn't exist yet
         }
     }
@@ -79,13 +79,14 @@ export function interpretAllCommands(something: any): any {
  * 
  * @returns Object with .failure either true or false, or the timeline
  */
-export function interpretOneCommand(input: string, executeCommands: boolean, network?: Network): any {
+export function interpretOneCommand(instrId: number, input: string, executeCommands: boolean, network?: Network): any {
 
     // if command has correct syntax all of these will be populated as necessary
     let inputObj  = undefined;
     let nodeId: number = undefined;
     let op: 'read' | 'update' | 'insert' | 'delete' = undefined;
     let itemId: number = undefined;
+    let additionalDelay: number = undefined;
 
     // detect json object and take it out before splitting
     let jsonStartIndex = 0;
@@ -110,7 +111,17 @@ export function interpretOneCommand(input: string, executeCommands: boolean, net
             return {failure: true, msg: 'entered JSON string \'' + input.slice(jsonStartIndex, jsonEndIndex) + '\' was invalid. Did you remember to put quotes?'};
         }
 
-        input = input.substring(0, jsonStartIndex);
+        const beforeJson = input.substring(0, jsonStartIndex);
+        let afterJson = undefined;
+        if (jsonEndIndex + 1 < input.length) {
+            afterJson = input.substring(jsonEndIndex + 1, input.length);
+        }
+
+        if (afterJson !== undefined) {
+            input = beforeJson + ' ' + afterJson;
+        } else {
+            input = beforeJson;
+        }
     }
 
     let inputArr = input.split(" ");
@@ -145,6 +156,7 @@ export function interpretOneCommand(input: string, executeCommands: boolean, net
         }
         if (!isNaN(inputArr[i] as any)) {
             itemId = parseInt(inputArr[i]);
+            i++;
 
         } else {
             return {failure: true, msg: 'Item id must be a number, input was \'' + inputArr[i] + '\''};
@@ -191,6 +203,16 @@ export function interpretOneCommand(input: string, executeCommands: boolean, net
         return {failure: true, msg: 'operation \'' + inputArr[i] + '\' not recognized'};
     }
 
+    if (i < inputArr.length && (inputArr[i] === 'delay' || inputArr[i] === 'd')) {
+        i++;
+        if (!isNaN(inputArr[i] as any)) {
+            additionalDelay = parseInt(inputArr[i]);
+            i++;
+        } else {
+            return {failure: true, msg: 'delay must be followed by a number, ' + inputArr[i] + ' is not a number'};
+        }
+    }
+
     if (!executeCommands) {
         return {failure: false};
 
@@ -202,15 +224,15 @@ export function interpretOneCommand(input: string, executeCommands: boolean, net
     const n = network.getNode(nodeId);
 
     if (op === 'read') {
-        return n.read(itemId);
+        return n.read(itemId, additionalDelay, instrId);
 
     } else if (op === 'delete') {
-        return n.delete(itemId);
+        return n.delete(itemId, additionalDelay, instrId);
 
     } else if (op === 'insert') {
-        return n.insert(inputObj);
+        return n.insert(inputObj, additionalDelay, instrId);
  
     } else if (op === 'update') {
-        return n.update(itemId, inputObj);
+        return n.update(itemId, inputObj, additionalDelay, instrId);
     }
 }

@@ -30,7 +30,7 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 
 				instructionBlock.instructions.forEach(instr => {
 
-					const checkResult = interpret.interpretOneCommand(instr.text, false);
+					const checkResult = interpret.interpretOneCommand(instr.instrId, instr.text, false);
 					if (checkResult.failure) {
 
 						success = false;
