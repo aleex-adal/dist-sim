@@ -18,6 +18,13 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 	useEffect(() => {
 		if (props.net) {
 			generateNodes(props.net.numNodes);
+			insertAnimations(props.net.numNodes);
+
+			var div = document.getElementById('msg');
+
+			setTimeout( () => {
+				div.style.animation = 'id0to6 0.5s ease-out forwards';
+			}, 0);
 		}
 	}, [props.net]);
 
@@ -63,17 +70,20 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 			const deg = (360 / num) * i;
 
-			var width = (document.getElementById("circle-wrapper").offsetWidth / 2) + 'px';
+			var radius = (document.getElementById("circle-wrapper").offsetWidth / 2) + 'px';
 
 			document.getElementById('circle-wrapper').append(newDiv);
-			document.getElementById(i.toString()).style.transform = "rotate(-90deg) rotate(" + deg + "deg) translate(" + width + ") rotate(-" + deg + "deg) rotate(90deg)";
+			document.getElementById(i.toString()).style.transform = "rotate(-90deg) rotate(" + deg + "deg) translate(" + radius + ") rotate(-" + deg + "deg) rotate(90deg)";
 			document.getElementById(i.toString()).style.lineHeight = document.getElementById(i.toString()).offsetWidth - 2 + 'px'; // reset line height, - 2 is border width
 
 			document.getElementById(i.toString()).addEventListener('click', (ev) => {props.getNodeInfo(i)});
 		}
 
 		const edges = [];
-		const subtractBy = document.getElementById('0').getBoundingClientRect().top;
+		const subtractByTop = document.getElementById('0').getBoundingClientRect().top;
+		const subtractByLeft = (document.getElementById('0').getBoundingClientRect().left) - 229; // trial and error baby
+		var width = document.getElementById("sim-wrapper").offsetWidth;
+		var height = document.getElementById("sim-wrapper").offsetHeight;
 
 		let newSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
 		newSvg.setAttribute('width',  document.getElementById('circle-wrapper').offsetWidth.toString());
@@ -88,11 +98,13 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 					// add the edge to edges, create new line on the svg
 					edges.push([node.id, connection]);
 
-					const x1 = document.getElementById(node.id.toString()).getBoundingClientRect().left;
-					const y1 = document.getElementById(node.id.toString()).getBoundingClientRect().top - subtractBy;
+					let x1 = document.getElementById(node.id.toString()).getBoundingClientRect().left;
+					let y1 = document.getElementById(node.id.toString()).getBoundingClientRect().top - subtractByTop;
 
-					const x2 = document.getElementById(connection.toString()).getBoundingClientRect().left;
-					const y2 = document.getElementById(connection.toString()).getBoundingClientRect().top - subtractBy;
+					let x2 = document.getElementById(connection.toString()).getBoundingClientRect().left;
+					let y2 = document.getElementById(connection.toString()).getBoundingClientRect().top - subtractByTop;;
+
+					if ( height < width) { x1 -= subtractByLeft; x2 -= subtractByLeft; y1 += 2; y2 += 2 }
 
 					const newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
 					newLine.setAttribute('x1', x1.toString());
@@ -109,32 +121,56 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		
 		document.getElementById('circle-wrapper').insertBefore(newSvg, document.getElementById('0'));
 
+		// setTimeout( () => document.getElementById('msg').style.animation = 'msg1 1s linear forwards', 3000);		
+	};
+
+	const insertAnimations = (numNodes: number) => {
+		const subtractBy = document.getElementById('0').getBoundingClientRect().top;
+		const msgWidth = parseInt(getComputedStyle(document.getElementById('0')).width);
+		var width = document.getElementById("sim-wrapper").offsetWidth;
+		var height = document.getElementById("sim-wrapper").offsetHeight;
+
+		for (let i = 0; i < numNodes; i++) {
+			for (let j = 0; j < numNodes; j++) {
+				if (i === j) {
+					continue;
+				}
+
+				let x1, x2, y1, y2;
+				if ( height >= width) {
+					x1 = document.getElementById(i.toString()).getBoundingClientRect().left - (msgWidth/2);
+					y1 = document.getElementById(i.toString()).getBoundingClientRect().top - subtractBy - (msgWidth/2);
+	
+					x2 = document.getElementById(j.toString()).getBoundingClientRect().left - (msgWidth/2);
+					y2 = document.getElementById(j.toString()).getBoundingClientRect().top - subtractBy - (msgWidth/2);
+				} else {
+					/// this doesnt work lol
+					x1 = document.getElementById(i.toString()).getBoundingClientRect().left - 122; // trial and error baby
+					y1 = document.getElementById(i.toString()).getBoundingClientRect().top - 68;
+	
+					x2 = document.getElementById(j.toString()).getBoundingClientRect().left - 122;
+					y2 = document.getElementById(j.toString()).getBoundingClientRect().top - 68;
+				}
+				
+				// going right or left
+				if (x2 - x1 > 0)      { x1 += Math.round(msgWidth/4); x2 -= Math.round(msgWidth/4); }				
+				else if (x2 - x1 < 0) { x1 -= Math.round(msgWidth/4); x2 += Math.round(msgWidth/4); }
+
+				// going down or up
+				if (y2 - y1 > 0)      { y1 += Math.round(msgWidth/4); y2 -= Math.round(msgWidth/4); }
+				else if (y2 - y1 < 0) { y1 -= Math.round(msgWidth/4); y2 += Math.round(msgWidth/4); }
+
+
+				(document.styleSheets[0] as any).insertRule(
+					`@keyframes id${i}to${j} { from{ left:${x1}px; top:${y1}px   } to{ left:${x2}px; top:${y2}px } }`
+				);
+			}
+		}
+
 		const msg = document.createElement('div');
 		msg.setAttribute('class', 'msg');
 		msg.setAttribute('id', 'msg');
-		document.getElementById('circle-wrapper').insertBefore(msg, null);
-
-		const msgHeight = parseInt(getComputedStyle(document.getElementById('msg')).height);
-		const msgWidth = parseInt(getComputedStyle(document.getElementById('msg')).width);
-
-		const x1 = document.getElementById('0').getBoundingClientRect().left - (msgWidth/2);
-		const y1 = document.getElementById('0').getBoundingClientRect().top - subtractBy - (msgHeight/2);
-
-		const x2 = document.getElementById('3').getBoundingClientRect().left - (msgWidth/2);
-		const y2 = document.getElementById('3').getBoundingClientRect().top - subtractBy - (msgHeight/2);
-
-		// document.getElementById('msg').style.left = x1.toString() + 'px';
-		// document.getElementById('msg').style.top = y1.toString() + 'px';
-
-		// var style = document.createElement('style');
-		// const addKeyFrames = (name, frames) => "@keyframes " + name + "{" + frames + "}";
-		// style.innerHTML = addKeyFrames('msg1', `from{left:${x1}; top:${y1}} to{left:${x2}; top:${y2}}`);
-		// document.head.appendChild( style );
-
-		
-
-		
-		// setTimeout( () => document.getElementById('msg').style.animation = 'msg1 1s forwards', 3000);		
+		document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
 	};
 
 	

@@ -62,15 +62,15 @@
 
 .msg {
 	box-sizing: border-box;
-	height: 50px;
-	width: 50px;
+	height: var(--node-diameter);
+	width: var(--node-diameter);
 	background: none;
 	border: 2px solid blue;
 	border-radius: 2px;
 	position: absolute;
 }
 
-@keyframes msg1 {
+/* @keyframes msg1 {
 	from {left:155px; top:-25px}
 	to {left:0px; top:200px}
-}
+} */
