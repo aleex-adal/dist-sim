@@ -108,7 +108,36 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		});
 		
 		document.getElementById('circle-wrapper').insertBefore(newSvg, document.getElementById('0'));
+
+		const msg = document.createElement('div');
+		msg.setAttribute('class', 'msg');
+		msg.setAttribute('id', 'msg');
+		document.getElementById('circle-wrapper').insertBefore(msg, null);
+
+		const msgHeight = parseInt(getComputedStyle(document.getElementById('msg')).height);
+		const msgWidth = parseInt(getComputedStyle(document.getElementById('msg')).width);
+
+		const x1 = document.getElementById('0').getBoundingClientRect().left - (msgWidth/2);
+		const y1 = document.getElementById('0').getBoundingClientRect().top - subtractBy - (msgHeight/2);
+
+		const x2 = document.getElementById('3').getBoundingClientRect().left - (msgWidth/2);
+		const y2 = document.getElementById('3').getBoundingClientRect().top - subtractBy - (msgHeight/2);
+
+		// document.getElementById('msg').style.left = x1.toString() + 'px';
+		// document.getElementById('msg').style.top = y1.toString() + 'px';
+
+		// var style = document.createElement('style');
+		// const addKeyFrames = (name, frames) => "@keyframes " + name + "{" + frames + "}";
+		// style.innerHTML = addKeyFrames('msg1', `from{left:${x1}; top:${y1}} to{left:${x2}; top:${y2}}`);
+		// document.head.appendChild( style );
+
+		
+
+		
+		// setTimeout( () => document.getElementById('msg').style.animation = 'msg1 1s forwards', 3000);		
 	};
+
+	
 
 	return (
 		<div id="sim-wrapper" className="sim-wrapper">

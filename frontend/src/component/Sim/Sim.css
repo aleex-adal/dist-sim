@@ -7,6 +7,11 @@
 
 	--node-diameter: calc(var(--circle-wrapper-width) / 7);
 
+	--x1: 0px;
+	--y1: 0px;
+
+	--x2: 0px;
+	--y2: 0px;
 }
 
 .sim-wrapper {
@@ -53,4 +58,19 @@
 	top: 50%;
 	left: 50%;
 	margin: calc(-1 * var(--node-diameter) / 2);
+}
+
+.msg {
+	box-sizing: border-box;
+	height: 50px;
+	width: 50px;
+	background: none;
+	border: 2px solid blue;
+	border-radius: 2px;
+	position: absolute;
+}
+
+@keyframes msg1 {
+	from {left:155px; top:-25px}
+	to {left:0px; top:200px}
 }
