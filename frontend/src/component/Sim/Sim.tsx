@@ -8,6 +8,7 @@ interface SimProps {
 	getNodeInfo: (id: number) => void;
 	apiResponse: any;
 	sentInstructions: Instruction[][];
+	setFinishedExecuting: React.Dispatch<React.SetStateAction<boolean>>;
  }
 
 const Sim: React.FunctionComponent<SimProps> = (props) => {
@@ -34,7 +35,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 		console.log('received api response! ', props.apiResponse);
 		setInstructionBlockToExecute(0);
-		// executeApiResponse(props.apiResponse, 0);
 		
 	}, [props.apiResponse]);
 
@@ -45,6 +45,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 		if (instructionBlockToExecute === props.sentInstructions.length) {
 			console.log('executed all blocks!');
+			props.setFinishedExecuting(true);
 			return;
 		}
 
@@ -61,8 +62,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			}
 
 		});
-
-
 
 	}, [instructionBlockToExecute]);
 

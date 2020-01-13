@@ -23,6 +23,9 @@ const App: React.FC = () => {
   const [instructionsToSend, setInstructionsToSend] = useState(undefined as Instruction[][]);
   const [apiResponse, setApiResponse] = useState(undefined);
 
+  // are we done executing the current set of instructions?
+  const [ finishedExecuting, setFinishedExecuting ] = useState(undefined as boolean);
+
   useEffect(() => {
     if (!network) {
       return;
@@ -78,6 +81,7 @@ const App: React.FC = () => {
   };
 
   const handleTextAreaInput = (event: ChangeEvent) => {
+    console.log('handle text a input');
     const currValue = (document.getElementById('textarea') as any).value;
 
     if (runButtonClasses[0] !== 'run run-active' && currValue) {
@@ -118,10 +122,10 @@ const App: React.FC = () => {
         </nav>
       </header>
 
-      <Sim net={network} getNodeInfo={getNodeInfo} apiResponse={apiResponse} sentInstructions={instructionsToSend} />
+      <Sim net={network} getNodeInfo={getNodeInfo} apiResponse={apiResponse} sentInstructions={instructionsToSend} setFinishedExecuting={setFinishedExecuting} />
 
       <div id="console" className="console">
-        <Controls setInstructionsToSend={setInstructionsToSend}/>
+        <Controls setInstructionsToSend={setInstructionsToSend} finishedExecuting={finishedExecuting} setFinishedExecuting={setFinishedExecuting} setRunButtonClasses={setRunButtonClasses} />
   
         <div id="prompt" className="before-textarea blink">>>></div>
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={handleTextAreaInput}></textarea>

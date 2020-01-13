@@ -3,10 +3,35 @@ import './Controls.css';
 import * as interpret from '../../util/interpret';
 
 interface ControlsProps {
-	setInstructionsToSend: React.Dispatch<React.SetStateAction<interpret.Instruction[][]>>
+	setInstructionsToSend: React.Dispatch<React.SetStateAction<interpret.Instruction[][]>>;
+	finishedExecuting: boolean;
+	setFinishedExecuting: React.Dispatch<React.SetStateAction<boolean>>;
+	setRunButtonClasses: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const Controls: React.FunctionComponent<ControlsProps> = (props) => {
+
+	useEffect( () => {
+		if (props.finishedExecuting === undefined) {
+			return;
+		}
+
+		if (props.finishedExecuting) {
+			const btn = document.getElementById('run');
+
+			btn.classList.remove('run-active');
+			btn.classList.remove('run-running');
+			btn.classList.remove('display-block');
+			btn.classList.remove('display-none');
+
+			btn.innerHTML = 'run';
+			(document.getElementById("textarea") as any).value = '';
+		}
+
+		props.setFinishedExecuting(false);
+		props.setRunButtonClasses(['run']);
+
+	}, [props.finishedExecuting]);
 
 	const changeRunStatus = (runOrControls: string) => {
 
