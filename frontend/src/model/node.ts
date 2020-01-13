@@ -4,6 +4,7 @@ import DataRange from "./DataRange";
 import OrderedMap from "./OrderedMap";
 
 import { Subject } from "rxjs";
+import { buildNodeInfoString } from "../util/interpret";
 
 export default class node {
     id: number = 0;
@@ -35,7 +36,9 @@ export default class node {
                 networkLatency: networkLatency,
                 additionalDelay: additionalDelay,
                 msg: 'middle node ' + this.id + ' received payload',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
 
             // don't update clocks if the node is simply forwarding the message. Pretend like sourceNode is sending
@@ -53,12 +56,16 @@ export default class node {
                 nodeId: this.id,
                 dir: 'send',
                 msg: 'middle node ' + this.id + ' changed payload path, is forwarding',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
 
             return this.ping(payload);
 
         } else if (payload.op === 'r' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            this.syncAndIncrementClock(payload.sourceClock);
+
             // emit event
             this.eventStream.next({
                 instrId: payload.instrId,
@@ -67,13 +74,14 @@ export default class node {
                 networkLatency: networkLatency,
                 additionalDelay: additionalDelay,
                 msg: 'final node ' + this.id + ' received payload',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
 
-            this.syncAndIncrementClock(payload.sourceClock);
+            this.clock[this.id]++; // increment once more because we're sending a message back
             payload.requestClock = payload.sourceClock;
             payload.sourceClock = JSON.parse(JSON.stringify(this.clock));
-            this.clock[this.id]++; // increment once more because we're sending a message back
             // console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
@@ -102,12 +110,16 @@ export default class node {
                 nodeId: this.id,
                 dir: 'send',
                 msg: 'final node ' + this.id + ' sending read response',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
 
             return this.ping(payload);
         
         } else if (payload.op === 'u' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            this.syncAndIncrementClock(payload.sourceClock);
+
             // emit event
             this.eventStream.next({
                 instrId: payload.instrId,
@@ -116,10 +128,10 @@ export default class node {
                 networkLatency: networkLatency,
                 additionalDelay: additionalDelay,
                 msg: 'final node ' + this.id + ' received payload',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
-
-            this.syncAndIncrementClock(payload.sourceClock);
 
             let msg = 'itemId ' + payload.itemId + ' was not found in database';
 
@@ -177,12 +189,16 @@ export default class node {
                 nodeId: this.id,
                 dir: 'send',
                 msg: 'final node ' + this.id + ' sending update response',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
 
             return this.ping(payload);
 
         } else if (payload.op === 'i' && payload.pathIndex === payload.path.length - 1 && payload.dir === 'out') {
+            this.syncAndIncrementClock(payload.sourceClock);
+
             // emit event
             this.eventStream.next({
                 instrId: payload.instrId,
@@ -191,10 +207,10 @@ export default class node {
                 networkLatency: networkLatency,
                 additionalDelay: additionalDelay,
                 msg: 'final node ' + this.id + ' received payload',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
-
-            this.syncAndIncrementClock(payload.sourceClock);
             
             // increments at the bottom
 
@@ -285,7 +301,9 @@ export default class node {
                 networkLatency: networkLatency,
                 additionalDelay: additionalDelay,
                 msg: 'final node ' + this.id + ' sending insert response',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
 
             return this.ping(payload);
@@ -317,7 +335,9 @@ export default class node {
                 networkLatency: networkLatency,
                 additionalDelay: additionalDelay,
                 msg: 'original node ' + this.id + ' received response',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });            
         
             return Promise.resolve(payload);
@@ -441,7 +461,9 @@ export default class node {
                 nodeId: this.id,
                 dir: 'send',
                 msg: 'node ' + this.id + ' emitting initial payload for read op',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
 
             return this.ping(payload, additionalDelay);
@@ -503,7 +525,9 @@ export default class node {
                 nodeId: this.id,
                 dir: 'send',
                 msg: 'node ' + this.id + ' emitting initial payload for ' + updateOrDelete + ' op',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
             
             return this.ping(payload, additionalDelay);
@@ -556,7 +580,9 @@ export default class node {
                 nodeId: this.id,
                 dir: 'send',
                 msg: 'node ' + this.id + ' emitting initial payload for insert op',
-                payload: JSON.parse(JSON.stringify(payload))
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
             });
              
             return this.ping(payload, additionalDelay);
@@ -631,7 +657,9 @@ export default class node {
             nodeId: this.id,
             dir: 'send',
             msg: 'node ' + this.id + ' emitting initial payload for insert op',
-            payload: JSON.parse(JSON.stringify(payload))
+            payload: JSON.parse(JSON.stringify(payload)),
+            done: false,
+            nodeInfoString: buildNodeInfoString(this),
         });
 
         return this.ping(payload, additionalDelay);

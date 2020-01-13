@@ -6,7 +6,7 @@ import Sim from './component/Sim/Sim';
 import Controls from './component/Controls/Controls';
 import Api from './component/Api/Api';
 
-import { InstructionBlock, Instruction } from './util/interpret';
+import { InstructionBlock, Instruction, buildNodeInfoString } from './util/interpret';
 import Network from './model/Network';
 
 const App: React.FC = () => {
@@ -74,7 +74,7 @@ const App: React.FC = () => {
       return;
     }
 
-    console.log('received api response! ', apiResponse);
+    // console.log('received api response! ', apiResponse);
   
   }, [apiResponse]);
 
@@ -90,42 +90,16 @@ const App: React.FC = () => {
   }
 
   const getNodeInfo = (id: number) => {
-    const node = network.getNode(id);
 
-    let dataRangeString = '[{';
-    for (let i = 0; i < node.dataRange.length; i++) {
-      dataRangeString = dataRangeString.concat('range: ' + node.dataRange[i].start + ' => ' + node.dataRange[i].end + ', full: ' + node.dataRange[i].full);
-      if (i + 1 < node.dataRange.length) {
-        dataRangeString = dataRangeString.concat('}, {');
-      }
+    let infoToPrint = '';
+
+    if (!apiResponse) {
+      const node = network.getNode(id);
+      infoToPrint = buildNodeInfoString(node);
+
+    } else {
+
     }
-    dataRangeString = dataRangeString.concat('}]');
-
-    let dataSliceString = "<span style='color: #18cdfa'>[</span></br>";
-    const it = node.dataSlice.entries();
-
-    let val = it.next().value;
-    while (!!val) {
-      dataSliceString = dataSliceString.concat("<span style='color: #f0d976'>{</span>itemId: " + val[0] + ', ');
-      Object.keys(val[1]).forEach( (key) => {
-        dataSliceString = dataSliceString.concat(key + ': ' + val[1][key] + ', ');
-      });
-      dataSliceString = dataSliceString.slice(0, -2); 
-
-      if (val = it.next().value) {
-        dataSliceString = dataSliceString.concat("<span style='color: #f0d976'>}</span>,</br>");
-      } else {
-        dataSliceString = dataSliceString.concat("<span style='color: #f0d976'>}</span></br>");
-      }
-    }
-    dataSliceString = dataSliceString.concat("<span style='color: #18cdfa'>]</span>");
-
-    let infoToPrint = "<span style='color: #dd9f58'>{</span>" + 
-      "<span style='color: #f1ef43'>nodeId: </span>"          + node.id                          + ',</br>' +
-      "<span style='color: #f1ef43'>connections: </span>" + JSON.stringify(node.connections) + ',</br>' +
-      "<span style='color: #f1ef43'>dataRange: </span>"   + dataRangeString                  + ',</br>' +
-      "<span style='color: #f1ef43'>dataSlice: </span>"   + dataSliceString   + ',</br>' +
-      "<span style='color: #f1ef43'>clock: </span>"       + JSON.stringify(node.clock)       + "<span style='color: #dd9f58'>}</span>";
 
     document.getElementById('node-info').innerHTML = infoToPrint;
     if (document.getElementById('node-info').classList.length === 1) {
@@ -175,7 +149,7 @@ const App: React.FC = () => {
         </nav>
       </header>
 
-      <Sim net={network} getNodeInfo={getNodeInfo} />
+      <Sim net={network} getNodeInfo={getNodeInfo} apiResponse={apiResponse} sentInstructions={instructionsToSend} />
 
       <div id="console" className="console">
         <Controls setInstructionBlocks={setInstructionBlocks}/>

@@ -43,6 +43,9 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
 
          n 0 u 6 {"hello":"hello"}
          n 0 r 6
+         
+         in-order
+         n 0 d 6
         */
 
     }, [props.sentInstructions]);

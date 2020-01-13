@@ -1,4 +1,5 @@
 import Network from "../model/Network";
+import node from "../model/node";
 
 export interface Instruction {
     instrId: number,
@@ -236,3 +237,42 @@ export function interpretOneCommand(instrId: number, input: string, executeComma
         return n.update(itemId, inputObj, additionalDelay, instrId);
     }
 }
+
+export function buildNodeInfoString(n: node): string {
+    let dataRangeString = '[{';
+    for (let i = 0; i < n.dataRange.length; i++) {
+      dataRangeString = dataRangeString.concat('range: ' + n.dataRange[i].start + ' => ' + n.dataRange[i].end + ', full: ' + n.dataRange[i].full);
+      if (i + 1 < n.dataRange.length) {
+        dataRangeString = dataRangeString.concat('}, {');
+      }
+    }
+    dataRangeString = dataRangeString.concat('}]');
+
+    let dataSliceString = "<span style='color: #18cdfa'>[</span></br>";
+    const it = n.dataSlice.entries();
+
+    let val = it.next().value;
+    while (!!val) {
+      dataSliceString = dataSliceString.concat("<span style='color: #f0d976'>{</span>itemId: " + val[0] + ', ');
+      Object.keys(val[1]).forEach( (key) => {
+        dataSliceString = dataSliceString.concat(key + ': ' + val[1][key] + ', ');
+      });
+      dataSliceString = dataSliceString.slice(0, -2); 
+
+      if (val = it.next().value) {
+        dataSliceString = dataSliceString.concat("<span style='color: #f0d976'>}</span>,</br>");
+      } else {
+        dataSliceString = dataSliceString.concat("<span style='color: #f0d976'>}</span></br>");
+      }
+    }
+    dataSliceString = dataSliceString.concat("<span style='color: #18cdfa'>]</span>");
+
+    let infoToPrint = "<span style='color: #dd9f58'>{</span>" + 
+      "<span style='color: #f1ef43'>nodeId: </span>"          + n.id                          + ',</br>' +
+      "<span style='color: #f1ef43'>connections: </span>" + JSON.stringify(n.connections) + ',</br>' +
+      "<span style='color: #f1ef43'>dataRange: </span>"   + dataRangeString                  + ',</br>' +
+      "<span style='color: #f1ef43'>dataSlice: </span>"   + dataSliceString   + ',</br>' +
+      "<span style='color: #f1ef43'>clock: </span>"       + JSON.stringify(n.clock)       + "<span style='color: #dd9f58'>}</span>";
+    
+    return infoToPrint;
+  }

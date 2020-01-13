@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import './Sim.css';
 import Network from '../../model/Network';
+import { Instruction } from '../../util/interpret';
 
 interface SimProps {
-	net: Network
+	net: Network;
 	getNodeInfo: (id: number) => void;
+	apiResponse: any;
+	sentInstructions: Instruction[][];
  }
 
 const Sim: React.FunctionComponent<SimProps> = (props) => {
@@ -19,14 +22,18 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		if (props.net) {
 			generateNodes(props.net.numNodes);
 			insertAnimations(props.net.numNodes);
-
-			var div = document.getElementById('msg');
-
-			setTimeout( () => {
-				div.style.animation = 'id0to6 0.5s ease-out forwards';
-			}, 0);
 		}
 	}, [props.net]);
+
+	useEffect( () => {
+		if (!props.apiResponse) {
+			return;
+		}
+
+		console.log('received api response! ', props.apiResponse);
+		executeApiResponse(props.apiResponse, 0);
+		
+	}, [props.apiResponse]);
 
 	const sizeOuterCircle = () => {
 		var width = document.getElementById("sim-wrapper").offsetWidth;
@@ -164,16 +171,66 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 				(document.styleSheets[0] as any).insertRule(
 					`@keyframes id${i}to${j} { from{ left:${x1}px; top:${y1}px   } to{ left:${x2}px; top:${y2}px } }`
 				);
+
+				(document.styleSheets[0] as any).insertRule(
+					`.msg${i}to${j} { left:${x1}px; top:${y1}px }`
+				);
 			}
 		}
-
-		const msg = document.createElement('div');
-		msg.setAttribute('class', 'msg');
-		msg.setAttribute('id', 'msg');
-		document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
 	};
 
-	
+	const executeApiResponse = (apiResponse: [{
+		instrId: number,
+		nodeId: number,
+		dir: string,
+		msg: string,
+		payload: any,
+		nodeInfoString: string,
+		networkLatency?: number,
+		additionalDelay?: number,
+		done: boolean,
+	}], i: number) => {
+
+		console.log('executing' + i);
+
+		if (i === apiResponse.length) {
+			return;
+		}
+
+		const thisMsg = apiResponse[i];
+		let next = i + 1;
+		while (apiResponse[next].instrId !== apiResponse[i].instrId) {
+			next++;
+		}
+		const nextMsg = apiResponse[next];
+
+		if (thisMsg.msg.includes('initial payload')) {
+			const delay = nextMsg.networkLatency + nextMsg.additionalDelay;
+
+			const msg = document.createElement('div');
+			msg.setAttribute('class', `msg msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
+			msg.setAttribute('id', `instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
+			document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
+			var div = document.getElementById(`instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
+
+			div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s ease-out forwards`;
+			div.addEventListener('animationend', () => {
+				console.log(`Animation instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId} ended`);
+				div.remove();
+				console.log('still executing~!');
+				executeApiResponse(apiResponse, next);
+			});
+
+			thisMsg.done = true;
+			return;
+		}
+
+		if (thisMsg.dir === 'recv' && thisMsg.msg.includes('middle')) {
+			thisMsg.done = true;
+			executeApiResponse(apiResponse, next);
+		}
+	}
+
 
 	return (
 		<div id="sim-wrapper" className="sim-wrapper">
