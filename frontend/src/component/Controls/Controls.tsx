@@ -3,7 +3,7 @@ import './Controls.css';
 import * as interpret from '../../util/interpret';
 
 interface ControlsProps {
-	setInstructionBlocks: React.Dispatch<React.SetStateAction<interpret.InstructionBlock[]>>
+	setInstructionsToSend: React.Dispatch<React.SetStateAction<interpret.Instruction[][]>>
 }
 
 const Controls: React.FunctionComponent<ControlsProps> = (props) => {
@@ -28,7 +28,7 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 
 			blocks.forEach( instructionBlock => {
 
-				instructionBlock.instructions.forEach(instr => {
+				instructionBlock.forEach(instr => {
 
 					const checkResult = interpret.interpretOneCommand(instr.instrId, instr.text, false);
 					if (checkResult.failure) {
@@ -47,7 +47,12 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 			});
 
 			if (success) {
-				props.setInstructionBlocks(blocks);
+				// this is equivalent to "sending" instructions to our api component
+				// (it's listening for changes to its sent instructions prop)
+
+				// if using a real api, we would detect instructions to send and
+				// make an api request, then return the apiResponse to the app component
+				props.setInstructionsToSend(blocks);
 				scrollToTop();
 				btn.innerHTML = 'pause';
 				btn.classList.add('run-running');

@@ -12,6 +12,8 @@ interface SimProps {
 
 const Sim: React.FunctionComponent<SimProps> = (props) => {
 
+	const [ instructionBlockToExecute, setInstructionBlockToExecute ] = useState(undefined as number);
+
 	useEffect(() => {
 		// TODO: make this work for resizing too
 		// window.addEventListener('resize', sizeOuterCircle);
@@ -31,9 +33,38 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		}
 
 		console.log('received api response! ', props.apiResponse);
-		executeApiResponse(props.apiResponse, 0);
+		setInstructionBlockToExecute(0);
+		// executeApiResponse(props.apiResponse, 0);
 		
 	}, [props.apiResponse]);
+
+	useEffect( () => {
+		if (instructionBlockToExecute === undefined) {
+			return;
+		}
+
+		if (instructionBlockToExecute === props.sentInstructions.length) {
+			console.log('executed all blocks!');
+			return;
+		}
+
+		const instrToExecute = props.sentInstructions[instructionBlockToExecute];
+
+		instrToExecute.forEach( instr => {
+			const instrId = instr.instrId;
+			
+			for (let i = 0; i < props.apiResponse.length; i++ ) {
+				if (props.apiResponse[i].instrId === instrId) {
+					executeApiResponse(props.apiResponse, i);
+					break;
+				}
+			}
+
+		});
+
+
+
+	}, [instructionBlockToExecute]);
 
 	const sizeOuterCircle = () => {
 		var width = document.getElementById("sim-wrapper").offsetWidth;
@@ -191,20 +222,56 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		done: boolean,
 	}], i: number) => {
 
-		console.log('executing' + i);
+		console.log('executing ' + i);
+		for (let ind = i-1; ind >= 0; --ind) {
+			if (apiResponse[ind].done === false) {
+				console.log('out of order, waiting for correct thing to execute');
+				setTimeout(() => executeApiResponse(apiResponse, i), 200);
+				return;
+			}
+		}
 
 		if (i === apiResponse.length) {
+			console.log('does this ever happen?');
 			return;
 		}
 
 		const thisMsg = apiResponse[i];
+		if (thisMsg.dir === 'recv' && thisMsg.msg.includes('original')) {
+			console.log('finished instr ' + thisMsg.instrId);
+			thisMsg.done = true;
+
+			// barrier synchronization
+			const thisBlock = props.sentInstructions[instructionBlockToExecute];
+			const thisInstr = thisBlock.findIndex((inst) => inst.instrId === thisMsg.instrId);
+			
+			if (thisInstr >= 0) {
+				thisBlock[thisInstr].done = true;
+			}
+
+			let thisBlockDone = true;
+			for (let i = 0; i < thisBlock.length; i++) {
+				if (!thisBlock[i].done) { thisBlockDone = false; }
+			}
+
+			// execute the next block
+			if (thisBlockDone) {
+				setInstructionBlockToExecute(instructionBlockToExecute + 1);
+			}
+			return;
+		}
+
 		let next = i + 1;
 		while (apiResponse[next].instrId !== apiResponse[i].instrId) {
 			next++;
-		}
+		} 
+
 		const nextMsg = apiResponse[next];
 
-		if (thisMsg.msg.includes('initial payload')) {
+		if (thisMsg.msg.includes('initial payload') ||
+			(thisMsg.dir === 'send' && thisMsg.msg.includes('middle')) ||
+			(thisMsg.dir === 'send' && thisMsg.msg.includes('final'))
+		) {
 			const delay = nextMsg.networkLatency + nextMsg.additionalDelay;
 
 			const msg = document.createElement('div');
@@ -213,11 +280,10 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
 			var div = document.getElementById(`instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
 
-			div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s ease-out forwards`;
+			div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s linear forwards`;
 			div.addEventListener('animationend', () => {
 				console.log(`Animation instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId} ended`);
 				div.remove();
-				console.log('still executing~!');
 				executeApiResponse(apiResponse, next);
 			});
 
@@ -225,9 +291,11 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			return;
 		}
 
-		if (thisMsg.dir === 'recv' && thisMsg.msg.includes('middle')) {
+		if ((thisMsg.dir === 'recv' && thisMsg.msg.includes('middle')) ||
+			(thisMsg.dir === 'recv' && thisMsg.msg.includes('final'))
+		) {
 			thisMsg.done = true;
-			executeApiResponse(apiResponse, next);
+			return executeApiResponse(apiResponse, next);
 		}
 	}
 

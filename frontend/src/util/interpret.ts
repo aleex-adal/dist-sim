@@ -5,19 +5,15 @@ export interface Instruction {
     instrId: number,
     text: string,
     res?: any,
+    done: boolean,
 }
 
-export interface InstructionBlock {
-    instructions: Instruction[],
-    status: string
-}
-
-export function createInstructionBlocks(input: string): InstructionBlock[] {
+export function createInstructionBlocks(input: string): Instruction[][] {
 
     input = input.toLowerCase();
 
     const inputCommands = input.split("\n");
-    let instructionBlocks: InstructionBlock[];
+    let instructionBlocks: Instruction[][];
     let nextInstructionId = 0;
     let ibIndex = 0;
 
@@ -46,20 +42,20 @@ export function createInstructionBlocks(input: string): InstructionBlock[] {
 
         if (!instructionBlocks) {
             instructionBlocks = [
-                {instructions: [{instrId: nextInstructionId++, text: str}], status: 'new'}
+                [{instrId: nextInstructionId++, text: str, done: false}]
             ];
             continue;
         }  
 
         if (normal && !instructionBlocks[ibIndex]) {
-            instructionBlocks.push({instructions: [{instrId: nextInstructionId++, text: str}], status: 'new'});
+            instructionBlocks.push([{instrId: nextInstructionId++, text: str, done: false}]);
             ibIndex = instructionBlocks.length - 1; // set ibIndex to the current instruction block that we just initialized
 
         } else if (normal && instructionBlocks[ibIndex]) {
-            instructionBlocks[ibIndex].instructions.push({instrId: nextInstructionId++, text: str});
+            instructionBlocks[ibIndex].push({instrId: nextInstructionId++, text: str, done: false});
 
         } else if (inOrder) {
-            instructionBlocks.push({instructions: [{instrId: nextInstructionId++, text: str}], status: 'new'});
+            instructionBlocks.push([{instrId: nextInstructionId++, text: str, done: false}]);
             ibIndex = instructionBlocks.length; // set ibIndex to the block AFTER this one ie it doesn't exist yet
         }
     }

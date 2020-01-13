@@ -6,7 +6,7 @@ import Sim from './component/Sim/Sim';
 import Controls from './component/Controls/Controls';
 import Api from './component/Api/Api';
 
-import { InstructionBlock, Instruction, buildNodeInfoString } from './util/interpret';
+import { Instruction, buildNodeInfoString } from './util/interpret';
 import Network from './model/Network';
 
 const App: React.FC = () => {
@@ -20,7 +20,6 @@ const App: React.FC = () => {
   const [network, setNetwork] = useState(undefined as Network);
 
   // initialize state to null values but keep those suckers typed
-  const [instructionBlocks, setInstructionBlocks] = useState(undefined as InstructionBlock[]);
   const [instructionsToSend, setInstructionsToSend] = useState(undefined as Instruction[][]);
   const [apiResponse, setApiResponse] = useState(undefined);
 
@@ -47,36 +46,6 @@ const App: React.FC = () => {
     });
 
   }, [network]);
-
-  useEffect(() => {
-
-    if (!instructionBlocks) {
-      return;
-    }
-
-    let instructionsToSend: Instruction[][] = [];
-    instructionBlocks.forEach( block => {
-      instructionsToSend.push(block.instructions);
-    })
-
-    // this is equivalent to "sending" instructions to our api component
-    // (it's listening for changes to its sent instructions prop)
-
-    // if using a real api, we would handle the promise returned by the
-    // request here. Instead, we detect the returned promise and
-    // handle it when it returns from the "api" below
-    setInstructionsToSend(instructionsToSend);
-
-  }, [instructionBlocks]);
-
-  useEffect( () => {
-    if (!apiResponse) {
-      return;
-    }
-
-    // console.log('received api response! ', apiResponse);
-  
-  }, [apiResponse]);
 
   const detectClickOffTextArea = (event: MouseEvent) => {
     
@@ -152,7 +121,7 @@ const App: React.FC = () => {
       <Sim net={network} getNodeInfo={getNodeInfo} apiResponse={apiResponse} sentInstructions={instructionsToSend} />
 
       <div id="console" className="console">
-        <Controls setInstructionBlocks={setInstructionBlocks}/>
+        <Controls setInstructionsToSend={setInstructionsToSend}/>
   
         <div id="prompt" className="before-textarea blink">>>></div>
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={handleTextAreaInput}></textarea>
