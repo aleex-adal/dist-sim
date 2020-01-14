@@ -29,17 +29,20 @@ export default class node {
         } else if (payload.pathIndex !== (payload.path.length - 1) && payload.pathIndex !== 0) {
 
             // emit event
-            this.eventStream.next({
-                instrId: payload.instrId,
-                nodeId: this.id,
-                dir: 'recv',
-                networkLatency: networkLatency,
-                additionalDelay: additionalDelay,
-                msg: 'middle node ' + this.id + ' received payload',
-                payload: JSON.parse(JSON.stringify(payload)),
-                done: false,
-                nodeInfoString: buildNodeInfoString(this),
-            });
+            if (payload.op !== 'updateDataRange') {
+                this.eventStream.next({
+                    instrId: payload.instrId,
+                    nodeId: this.id,
+                    dir: 'recv',
+                    networkLatency: networkLatency,
+                    additionalDelay: additionalDelay,
+                    msg: 'middle node ' + this.id + ' received payload',
+                    payload: JSON.parse(JSON.stringify(payload)),
+                    done: false,
+                    nodeInfoString: buildNodeInfoString(this),
+                });
+            }
+            
 
             // don't update clocks if the node is simply forwarding the message. Pretend like sourceNode is sending
             // directly to targetNode
@@ -51,15 +54,17 @@ export default class node {
             payload.id = payload.path[payload.pathIndex];
 
             // emit event
-            this.eventStream.next({
-                instrId: payload.instrId,
-                nodeId: this.id,
-                dir: 'send',
-                msg: 'middle node ' + this.id + ' changed payload path, is forwarding',
-                payload: JSON.parse(JSON.stringify(payload)),
-                done: false,
-                nodeInfoString: buildNodeInfoString(this),
-            });
+            if (payload.op !== 'updateDataRange') {
+                this.eventStream.next({
+                    instrId: payload.instrId,
+                    nodeId: this.id,
+                    dir: 'send',
+                    msg: 'middle node ' + this.id + ' changed payload path, is forwarding',
+                    payload: JSON.parse(JSON.stringify(payload)),
+                    done: false,
+                    nodeInfoString: buildNodeInfoString(this),
+                });
+            }
 
             return this.ping(payload);
 
@@ -269,7 +274,30 @@ export default class node {
                         this.clock[this.id]++;
                         const tempClock = JSON.parse(JSON.stringify(this.clock));
                         let pathIndex = val.path[0] === this.id ? 1 : 0;
-                        this.ping({id: val.path[pathIndex], path: val.path, pathIndex: pathIndex, op: 'updateDataRange', newRange: changedDataRange, dir: 'out', sourceClock: tempClock});
+
+                        const payload = {
+                            id: val.path[pathIndex],
+                            path: val.path,
+                            pathIndex: pathIndex,
+                            op: 'updateDataRange',
+                            newRange: changedDataRange,
+                            dir: 'out',
+                            sourceClock: tempClock,
+                            instrId: key + 99, 
+                        };
+
+                        // emit event, but it's too complicated :(
+                        // this.eventStream.next({
+                        //     instrId: payload.instrId,
+                        //     nodeId: this.id,
+                        //     dir: 'send',
+                        //     msg: 'node ' + this.id + ' emitting initial payload for updateDataRange op',
+                        //     payload: JSON.parse(JSON.stringify(payload)),
+                        //     done: false,
+                        //     nodeInfoString: buildNodeInfoString(this),
+                        // });
+    
+                        this.ping(payload);
                     }
                 });
             }
@@ -313,6 +341,20 @@ export default class node {
             // console.log('node id ' + this.id + ' new clock: ' + this.clock);
 
             this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
+
+            // emit event, but it's too complicated :(
+            // this.eventStream.next({
+            //     instrId: payload.instrId,
+            //     nodeId: this.id,
+            //     dir: 'recv',
+            //     networkLatency: networkLatency,
+            //     additionalDelay: additionalDelay,
+            //     msg: 'final node ' + this.id + ' received updateDataRange payload',
+            //     payload: JSON.parse(JSON.stringify(payload)),
+            //     done: false,
+            //     nodeInfoString: buildNodeInfoString(this),
+            // });
+            
             return Promise.resolve({msg: 'updateDataRange on node id ' + this.id + ' done'});
 
         } else if (payload.pathIndex <= 0 && payload.newRange) {
@@ -320,6 +362,20 @@ export default class node {
             // console.log('node id ' + this.id + ' new clock: ' + this.clock);
         
             this.dataRangeOrderedMap.set(payload.newRange.start, payload.newRange);
+
+            // emit event
+            this.eventStream.next({
+                instrId: payload.instrId,
+                nodeId: this.id,
+                dir: 'recv',
+                networkLatency: networkLatency,
+                additionalDelay: additionalDelay,
+                msg: 'original node ' + this.id + ' received response',
+                payload: JSON.parse(JSON.stringify(payload)),
+                done: false,
+                nodeInfoString: buildNodeInfoString(this),
+            });
+
             return Promise.resolve(payload);
 
         } else if (payload.pathIndex <= 0) {
@@ -426,12 +482,16 @@ export default class node {
             for (let i = highest; i >= 0; i--) {
                 let currDataRangeStart = this.dataRangeOrderedMap.keysInOrder[i];
                 if (currDataRangeStart <= itemId) {
-                    targetNode = this.dataRangeOrderedMap.get(currDataRangeStart).nodeId;
+                    if (this.dataRangeOrderedMap.get(currDataRangeStart) === undefined) {
+                        targetNode = undefined;
+                    } else {
+                        targetNode = this.dataRangeOrderedMap.get(currDataRangeStart).nodeId;
+                    }
                     break;
                 }
             }
 
-            if (!targetNode) {
+            if (targetNode === undefined) {
                 return Promise.resolve({msg: 'requested id does not exist in db'});
             }
             
@@ -489,12 +549,16 @@ export default class node {
             for (let i = highest; i >= 0; i--) {
                 let currDataRangeStart = this.dataRangeOrderedMap.keysInOrder[i];
                 if (currDataRangeStart <= itemId) {
-                    targetNode = this.dataRangeOrderedMap.get(currDataRangeStart).nodeId;
+                    if (this.dataRangeOrderedMap.get(currDataRangeStart) === undefined) {
+                        targetNode = undefined;
+                    } else {
+                        targetNode = this.dataRangeOrderedMap.get(currDataRangeStart).nodeId;
+                    }
                     break;
                 }
             }
 
-            if (!targetNode) {
+            if (targetNode === undefined) {
                 return Promise.resolve({msg: 'requested id does not exist in db'});
             }
             

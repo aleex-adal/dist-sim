@@ -57,6 +57,7 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
         props.setApiResponse(JSON.parse(JSON.stringify(emittedEvents)));
 
         setEmittedEvents([]);
+        setFinishedExecuting(false);
         
     }, [finishedExecuting]);
 

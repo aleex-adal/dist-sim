@@ -3,11 +3,12 @@ import './App.css';
 import menu from './resource/menu.svg';
 
 import Sim from './component/Sim/Sim';
-import Controls from './component/Controls/Controls';
+import Console from './component/Console/Console';
 import Api from './component/Api/Api';
 
 import { Instruction, buildNodeInfoString } from './util/interpret';
 import Network from './model/Network';
+import { ControlsProps } from './component/Controls/Controls';
 
 const App: React.FC = () => {
   const [menuClasses, setMenuClasses] = useState(['menu', 'overlay']);
@@ -15,6 +16,7 @@ const App: React.FC = () => {
   // this needs to be a pointer or the tsx element will just do a primitive string copy and won't receive changes
   const [nodeInfoClasses, setNodeInfoClasses] = useState(['node-info']);
   const [runButtonClasses, setRunButtonClasses] = useState(['run']);
+  const [ runState, setRunState ] = useState('init');
 
   // this is set when the API component mounts. For a real API, make the request for a network object from the real API
   const [network, setNetwork] = useState(undefined as Network);
@@ -81,7 +83,6 @@ const App: React.FC = () => {
   };
 
   const handleTextAreaInput = (event: ChangeEvent) => {
-    console.log('handle text a input');
     const currValue = (document.getElementById('textarea') as any).value;
 
     if (runButtonClasses[0] !== 'run run-active' && currValue) {
@@ -110,6 +111,17 @@ const App: React.FC = () => {
     }
   };
 
+  const getControlsProps = (): ControlsProps => {
+    return {
+      setInstructionsToSend: setInstructionsToSend,
+      finishedExecuting: finishedExecuting,
+      setFinishedExecuting: setFinishedExecuting,
+      setRunButtonClasses: setRunButtonClasses,
+      runState: runState,
+      setRunState: setRunState
+    };
+  }
+
   return (
     <div id="app" className="app">
 
@@ -122,14 +134,16 @@ const App: React.FC = () => {
         </nav>
       </header>
 
-      <Sim net={network} getNodeInfo={getNodeInfo} apiResponse={apiResponse} sentInstructions={instructionsToSend} setFinishedExecuting={setFinishedExecuting} />
+      <Sim 
+        net={network}
+        getNodeInfo={getNodeInfo}
+        apiResponse={apiResponse}
+        sentInstructions={instructionsToSend}
+        setFinishedExecuting={setFinishedExecuting} 
+      />
 
-      <div id="console" className="console">
-        <Controls setInstructionsToSend={setInstructionsToSend} finishedExecuting={finishedExecuting} setFinishedExecuting={setFinishedExecuting} setRunButtonClasses={setRunButtonClasses} />
-  
-        <div id="prompt" className="before-textarea blink">>>></div>
-        <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={handleTextAreaInput}></textarea>
-      </div>
+      <Console ControlsProps={getControlsProps()} handleTextAreaInput={handleTextAreaInput} />
+
       <div id="end"></div>
 
       <div id='node-info' className={nodeInfoClasses[0]}>

@@ -225,7 +225,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		for (let ind = i-1; ind >= 0; --ind) {
 			if (apiResponse[ind].done === false) {
 				console.log('out of order, waiting for correct thing to execute');
-				setTimeout(() => executeApiResponse(apiResponse, i), 200);
+				setTimeout(() => executeApiResponse(apiResponse, i), 500);
 				return;
 			}
 		}
@@ -260,6 +260,13 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			return;
 		}
 
+		// ending the updateDataRange messages
+		if (thisMsg.dir === 'recv' && thisMsg.msg.includes('final') && thisMsg.msg.includes('updateDataRange')) {
+			console.log('finished instr ' + thisMsg.instrId);
+			thisMsg.done = true;
+			return;
+		}
+
 		let next = i + 1;
 		while (apiResponse[next].instrId !== apiResponse[i].instrId) {
 			next++;
@@ -267,21 +274,30 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 		const nextMsg = apiResponse[next];
 
+		// ie. reading data on the same node
+		if (nextMsg.nodeId === thisMsg.nodeId) {
+			thisMsg.done = true;
+			executeApiResponse(apiResponse, next);
+			return;
+		}
+
 		if (thisMsg.msg.includes('initial payload') ||
 			(thisMsg.dir === 'send' && thisMsg.msg.includes('middle')) ||
 			(thisMsg.dir === 'send' && thisMsg.msg.includes('final'))
-		) {
-			const delay = nextMsg.networkLatency + nextMsg.additionalDelay;
+		) {	
+			let delay = nextMsg.networkLatency + nextMsg.additionalDelay;
 
 			const msg = document.createElement('div');
+			const msgId = `instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}`;
 			msg.setAttribute('class', `msg msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
-			msg.setAttribute('id', `instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
+			msg.setAttribute('id', msgId);
 			document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
-			var div = document.getElementById(`instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
+			var div = document.getElementById(msgId);
 
 			div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s linear forwards`;
+
 			div.addEventListener('animationend', () => {
-				console.log(`Animation instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId} ended`);
+				console.log(`Animation ${msgId} ended`);
 				div.remove();
 				executeApiResponse(apiResponse, next);
 			});
