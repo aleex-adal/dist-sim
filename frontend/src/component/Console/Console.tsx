@@ -27,38 +27,10 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         console.log('console received new api progression');
         console.log(props.apiResponse);
 
+        setLiWidth();
+
     }, [props.apiResponse]);
-
-    const getInstrLabel = (instr: any): string => {
-
-        const mapRes = mapInstrIdsToLabels.get(instr.instrId);
-        if (mapRes === undefined) {
-            let label = instr.payload.op;
-            if (instr.payload.itemId) {
-                label = label.concat(instr.payload.itemId);
-            }
-
-            mapInstrIdsToLabels.forEach( currLabel => {
-                if (currLabel[0] === label[0] && currLabel[1] === label[1]) {
-                    if (currLabel.length > 2) {
-                        label = label.concat('_' + (currLabel[currLabel.length - 1] + 1));
-                    } else {
-                        label = label.concat('_2');
-                    }
-                }
-            });
-            mapInstrIdsToLabels.set(instr.instrId, label);
-            return label;
-
-        } else {
-            return mapRes;
-        }
-    }
-
-    const getColor = (instr): string => {
-        return instr.done ? 'green' : instr.msg.includes('final') ? 'blue' : instr.msg.includes('original') ? 'orange' : 'yellow'
-    }
-
+    
     useEffect( () => {
         if (props.ControlsProps.finishedExecuting === undefined) {
             return;
@@ -103,6 +75,85 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         setInstrList(instrList);
     };
 
+    const getInstrLabel = (instr: any): any => {
+
+        let mapRes = mapInstrIdsToLabels.get(instr.instrId);
+        if (mapRes === undefined) {
+            let label: string;
+            let itemId: any;
+
+            if (instr.hasOwnProperty("payload")) {
+                label = instr.payload.op;
+                itemId = instr.payload.itemId;
+            } else if (instr.hasOwnProperty("res")) {
+                label = instr.res.op;
+                itemId = instr.res.itemId;
+            } else {
+                return '';
+            }
+
+            
+            if (itemId && label !== 'i') {
+                label = label.concat(itemId);
+            }
+
+            let repeatedInstrNumber = 0;
+            mapInstrIdsToLabels.forEach( currLabel => {
+
+                if (currLabel[0] === label[0] && currLabel[1] === label[1]) {
+
+                    if (currLabel.includes('_') && parseInt(currLabel[currLabel.length - 1]) >= repeatedInstrNumber) {
+                        repeatedInstrNumber = parseInt(currLabel[currLabel.length - 1]) + 1;
+                    } else {
+                        repeatedInstrNumber = 2;
+                    }
+                }
+            });
+
+            if (repeatedInstrNumber) {
+                label = label.concat('_' + repeatedInstrNumber);
+            }
+
+            mapInstrIdsToLabels.set(instr.instrId, label);
+
+            label = label + ": ";
+            return instr.done ? <s className='gray'>{label}</s> : label
+
+        } else {
+            mapRes = mapRes + ": ";
+            return instr.done ? <s className='gray'>{mapRes}</s> : mapRes
+        }
+    };
+
+    const getMsgColor = (val: any): string => {
+        return val.done ? 'gray' : val.msg.includes('final') ? 'blue' : val.msg.includes('original') ? 'yellow' : 'sky'
+    };
+
+    const setLiWidth = () => {
+        const totalWidth = document.getElementById('instrlist').offsetWidth;
+
+        let labels = document.getElementsByClassName('listlabel');
+
+        let maxWidth = 0;
+        for (let i = 0; i < labels.length; i++) {
+            const currWidth = (labels.item(i) as HTMLElement).offsetWidth;
+            if (currWidth > maxWidth) {
+                maxWidth = currWidth;
+            }
+        }
+
+        let msgs = document.getElementsByClassName('listmsg');
+        labels = document.getElementsByClassName('listlabel');
+
+        for (let i = 0; i < msgs.length; i++) {
+            let item = msgs.item(i) as HTMLElement;
+            let label = labels.item(i) as HTMLElement;
+
+            item.style.width = (totalWidth - maxWidth - 1) + 'px';
+            label.style.lineHeight = item.offsetHeight + 'px';
+        }
+    };
+
 
     return (
         <div id="console" className="console">
@@ -112,21 +163,29 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={props.handleTextAreaInput}></textarea>
         <div id="liveinfo" className="liveinfo display-none">
 
-            {instrList.map((instr, key) => {
-                return <div
-                    id={'instr' + instr.instrId.toString()}
-                    key={key}
-                    className={instrList[key].done ? 'green' : 'yellow'}
-                >{instr.text}</div>
+            <h3>executing instructions:</h3>
+            <div className='instrprogress'>
+                {instrList.map((instr, key) => {
+                    return <div
+                        id={'instr' + instr.instrId.toString()}
+                        key={key}
+                        className={instrList[key].done ? 'gray' : 'sky'}
+                    >{'instr ' + getInstrLabel(instr)}{instr.done ? <s>{instr.text}</s> : instr.text}</div>
+                })}
+            </div>
+            
 
-            })}
-            <ol>
+            <h3>all system actions:</h3>
+            <ul className="instrlist" id="instrlist">
                 {apiResponseCopy.map( (val, key) => {
                     return (
-                        <li key={key} className={getColor(val)}>{getInstrLabel(val) + ": " + val.msg}</li>
+                        <li key={key} className={key === 0 ? 'first' : key === apiResponseCopy.length - 1 ? 'last' : ''}>
+                            <div className="listlabel sky">{getInstrLabel(val)}</div>
+                            <div className={'listmsg ' + getMsgColor(val)}>{val.msg}</div>
+                        </li>
                     )
                 })}
-            </ol>
+            </ul>
 
         </div>
       </div>

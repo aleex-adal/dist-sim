@@ -13,12 +13,12 @@
   
   .run-active {
     color: #f1ef43;
-    border: 1px solid #f1ef43;
+    border: 2px solid #f1ef43;
   }
   
   .run-running {
     color: #18cdfa;
-    border: 1px solid #18cdfa;
+    border: 2px solid #18cdfa;
   }
   
   .back {
@@ -39,7 +39,7 @@
     box-sizing: border-box;
     color: #18cdfa;
     text-align: center;
-    border: 1px solid #18cdfa;
+    border: 2px solid #18cdfa;
     border-radius: 2px;
     padding: 2px;
     margin-bottom: 10px;

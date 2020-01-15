@@ -49,18 +49,62 @@ textarea {
     min-height: 75vh;
 }
 
-.green {
-    color: green;
+.gray {
+    color: #6e788f;
 }
 
 .blue {
-    color: blue;
-}
-
-.orange {
-    color: orange;
+    color: #18cdfa;
 }
 
 .yellow {
-    color: yellow;
+    color: #f1ef43;
+}
+
+.sky {
+    color: #f1f5fd;
+}
+
+.liveinfo h3 {
+    margin: 0;
+    text-align: center;
+    color: #f1ef43;
+    font-weight: normal;
+}
+
+.instrprogress {
+    margin: 10px 0 20px 0;
+    text-align: center;
+}
+
+.instrlist {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.instrlist li {
+    border-top: 1px solid #5a6274;
+    border-bottom: 1px solid #5a6274;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.first {
+    border-top: none !important;
+}
+
+.last {
+    border-bottom: none !important;
+}
+
+.listlabel {
+    display: inline-block;
+    padding-right: 10px;
+    vertical-align: middle;
+    float: left;
+}
+
+.listmsg {
+    display: inline-block;
 }
