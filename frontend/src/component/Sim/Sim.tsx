@@ -8,6 +8,7 @@ interface SimProps {
 	getNodeInfo: (id: number) => void;
 	apiResponse: any;
 	sentInstructions: Instruction[][];
+	setSentInstructions: React.Dispatch<React.SetStateAction<Instruction[][]>>;
 	setFinishedExecuting: React.Dispatch<React.SetStateAction<boolean>>;
  }
 
@@ -34,6 +35,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		}
 
 		console.log('received api response! ', props.apiResponse);
+		props.setFinishedExecuting(false);
 		setInstructionBlockToExecute(0);
 		
 	}, [props.apiResponse]);
@@ -241,7 +243,8 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			thisMsg.done = true;
 
 			// barrier synchronization
-			const thisBlock = props.sentInstructions[instructionBlockToExecute];
+			const allInstr = props.sentInstructions;
+			const thisBlock = allInstr[instructionBlockToExecute];
 			const thisInstr = thisBlock.findIndex((inst) => inst.instrId === thisMsg.instrId);
 			
 			if (thisInstr >= 0) {
@@ -252,6 +255,9 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			for (let i = 0; i < thisBlock.length; i++) {
 				if (!thisBlock[i].done) { thisBlockDone = false; }
 			}
+
+			// update sentInstructions so that the console can display properly
+			props.setSentInstructions(JSON.parse(JSON.stringify(allInstr)));
 
 			// execute the next block
 			if (thisBlockDone) {

@@ -9,6 +9,7 @@ interface ApiProps {
     setNetwork: React.Dispatch<React.SetStateAction<Network>>,
     sentInstructions: Instruction[][],
     setApiResponse: React.Dispatch<React.SetStateAction<Promise<any>>>,
+    simFinishedExecuting: boolean;
 }
 
 const Api: React.FunctionComponent<ApiProps> = (props) => {
@@ -26,7 +27,8 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
     }
 
     useEffect(() => {
-        if (!props.sentInstructions) {
+        // don't execute more backend stuff until the sim is done
+        if (!props.sentInstructions || props.simFinishedExecuting === false) {
             return;
         }
 

@@ -139,10 +139,11 @@ const App: React.FC = () => {
         getNodeInfo={getNodeInfo}
         apiResponse={apiResponse}
         sentInstructions={instructionsToSend}
+        setSentInstructions={setInstructionsToSend}
         setFinishedExecuting={setFinishedExecuting} 
       />
 
-      <Console ControlsProps={getControlsProps()} handleTextAreaInput={handleTextAreaInput} />
+      <Console ControlsProps={getControlsProps()} handleTextAreaInput={handleTextAreaInput} sentInstructions={instructionsToSend} />
 
       <div id="end"></div>
 
@@ -156,7 +157,7 @@ const App: React.FC = () => {
         </ul>
       </div>
 
-      <Api network={network} setNetwork={setNetwork} sentInstructions={instructionsToSend} setApiResponse={setApiResponse} />
+      <Api network={network} setNetwork={setNetwork} sentInstructions={instructionsToSend} setApiResponse={setApiResponse} simFinishedExecuting={finishedExecuting} />
     </div>
   );
 }

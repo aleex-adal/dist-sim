@@ -84,7 +84,6 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 				scrollToTop();
 				btn.innerHTML = 'pause';
 				btn.classList.add('run-running');
-				props.setFinishedExecuting(false);
 			};
 
 		} else if(runOrControls === 'run' && running) {

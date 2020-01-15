@@ -1,3 +1,58 @@
+.console {
+    box-sizing: border-box;
+    overflow: scroll;
+
+    /* height: calc(0.35 * (100vh - 46px)); */
+    min-height: 75vh;
+    font-family: 'Inconsolata', monospace;
+    background-color: #282c34;
+    color: #f1f5fd;
+    padding: 15px;
+}
+
+textarea {
+    box-sizing: border-box;
+    width: calc(100% - var(--prompt-width) - 5px);
+    float: right;
+
+    background-color: #282c34;
+    color: #f1f5fd;
+    border: none;
+    outline: none;
+    font-size: 20px;
+    font-family: 'Inconsolata', monospace;
+}
+
+.before-textarea {
+    display: inline-block;
+    padding-top: 2px;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0.0;
+    }
+}
+@-webkit-keyframes blink {
+    50% {
+        opacity: 0.0;
+    }
+}
+.blink {
+    animation: blink 3s step-start 0s infinite;
+    -webkit-animation: blink 3s step-start 0s infinite;
+}
+
 .liveinfo {
-    background-color: red;
+    box-sizing: border-box;
+    overflow: visible;
+    min-height: 75vh;
+}
+
+.green {
+    color: green;
+}
+
+.yellow {
+    color: yellow;
 }
