@@ -13,6 +13,8 @@ export interface ControlsProps {
 
 	// delivered by the Console component just so this component can delay resetting the instruction list
 	setInstrList?: React.Dispatch<React.SetStateAction<interpret.Instruction[]>>
+
+	setApiResponseCopy?: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 const Controls: React.FunctionComponent<ControlsProps> = (props) => {
@@ -51,7 +53,12 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 
 		// originally executed on console component, but this component handles reset now
 		toggleButtonsAndInfo();
+
+		// side effect of this on console component is resetting mapInstrIdToLabel map
+		// if done anywhere else the map gets reset to the old map because the old
+		// instructions still exist at this point. very frustrating
 		props.setInstrList([] as interpret.Instruction[]);
+		props.setApiResponseCopy([]);
 
 		btn.removeEventListener('click', resetRunBtn);
 	};

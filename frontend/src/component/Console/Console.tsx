@@ -10,25 +10,37 @@ interface ConsoleProps {
     apiResponse: any;
     handleTextAreaInput: (event: React.ChangeEvent<Element>) => void;
     sentInstructions: Instruction[][];
-    mapInstrIdsToLabels;
-    setMapInstrIdsToLabels;
 }
 
 const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
     const [ instrList, setInstrList ] = useState([] as Instruction[]);
     const [ apiResponseCopy, setApiResponseCopy ] = useState([]);
+    const [ mapInstrIdsToLabels, setMapInstrIdsToLabels ] = useState(new Map<number, string>());
 
     useEffect( () => {
         if (!props.apiResponse) {
             return;
         }
 
+        // only set LiWidth on the first apiResponse
+        if (apiResponseCopy.length === 0) {
+            setLiWidth();
+        }
+
         setApiResponseCopy(props.apiResponse);
+
         console.log('console received new api progression');
         console.log(props.apiResponse);
 
-        setLiWidth();
+        const msgs = document.getElementsByClassName('msg');
+        for (let i = 0; i < msgs.length; i++) {
+            const currMsg = msgs.item(i) as HTMLElement;
+            const tokens = currMsg.id.split('_');
+            if (!currMsg.innerHTML && mapInstrIdsToLabels.get(parseInt(tokens[1]))) {
+                currMsg.innerHTML = mapInstrIdsToLabels.get(parseInt(tokens[1]));
+            }
+        }
 
     }, [props.apiResponse]);
     
@@ -45,7 +57,6 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         } else {
             // toggleButtonsAndInfo executed by the reset event listener on Controls component
             // resetting the instruction list also done on the controls component
-            props.setMapInstrIdsToLabels(new Map<number, string>());
         }
 
     }, [props.ControlsProps.finishedExecuting]);
@@ -54,10 +65,18 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         if (!props.sentInstructions) {
             return;
         }
+
         console.log('updated instr:');
         console.log(props.sentInstructions)
         updateInstrList();
     }, [props.sentInstructions]);
+
+    useEffect( () => {
+        if (instrList.length === 0) {
+            setMapInstrIdsToLabels(undefined);
+            // set this map to undefined so that 
+        }
+    }, [instrList]);
 
     const toggleButtonsAndInfo = () => {
         document.getElementById('prompt').classList.toggle('display-none');
@@ -78,7 +97,16 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
     const getInstrLabel = (instr: any): any => {
 
-        let mapRes = props.mapInstrIdsToLabels.get(instr.instrId);
+        let mapRes = undefined;
+        let newMap = undefined as Map<number, string>;
+
+        if (mapInstrIdsToLabels) {
+            mapRes = mapInstrIdsToLabels.get(instr.instrId);
+            
+        } else {
+            newMap = new Map<number, string>();
+        }
+
         if (mapRes === undefined) {
             let label: string;
             let itemId: any;
@@ -99,23 +127,35 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
             }
 
             let repeatedInstrNumber = 0;
-            props.mapInstrIdsToLabels.forEach( currLabel => {
+            if (mapInstrIdsToLabels) {
+                mapInstrIdsToLabels.forEach( currLabel => {
 
-                if (currLabel[0] === label[0] && currLabel[1] === label[1]) {
-
-                    if (currLabel.includes('_') && parseInt(currLabel[currLabel.length - 1]) >= repeatedInstrNumber) {
-                        repeatedInstrNumber = parseInt(currLabel[currLabel.length - 1]) + 1;
-                    } else {
-                        repeatedInstrNumber = 2;
+                    if (currLabel[0] === label[0] && currLabel[1] === label[1]) {
+    
+                        if (currLabel.includes('_') && parseInt(currLabel[currLabel.length - 1]) >= repeatedInstrNumber) {
+                            repeatedInstrNumber = parseInt(currLabel[currLabel.length - 1]) + 1;
+                        } else {
+                            repeatedInstrNumber = 2;
+                        }
                     }
-                }
-            });
+                });
+            }
 
             if (repeatedInstrNumber) {
                 label = label.concat('_' + repeatedInstrNumber);
             }
 
-            props.mapInstrIdsToLabels.set(instr.instrId, label);
+            if (mapInstrIdsToLabels) {
+                mapInstrIdsToLabels.set(instr.instrId, label);
+            } else {
+                newMap.set(instr.instrId, label);
+                if (document.getElementById('run').innerHTML !== 'run') {
+                    // this will set a new map for the second instruction ONLY
+                    // when the run button's innerHTML is not 'run'
+                    // this indicates that new instructions are on the way
+                    setMapInstrIdsToLabels(newMap);
+                }
+            }
 
             label = label + ": ";
             return instr.done ? <s className='gray'>{label}</s> : label
@@ -158,7 +198,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
     return (
         <div id="console" className="console">
-        <Controls {...props.ControlsProps} setInstrList={setInstrList} />
+        <Controls {...props.ControlsProps} setInstrList={setInstrList} setApiResponseCopy={setApiResponseCopy} />
   
         <div id="prompt" className="before-textarea blink">>>></div>
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={props.handleTextAreaInput}></textarea>

@@ -11,7 +11,6 @@ interface SimProps {
 	sentInstructions: Instruction[][];
 	setSentInstructions: React.Dispatch<React.SetStateAction<Instruction[][]>>;
 	setFinishedExecuting: React.Dispatch<React.SetStateAction<boolean>>;
-	mapInstrIdsToLabels: Map<number, string>;
  }
 
 const Sim: React.FunctionComponent<SimProps> = (props) => {

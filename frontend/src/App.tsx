@@ -28,10 +28,6 @@ const App: React.FC = () => {
   // are we done executing the current set of instructions?
   const [ finishedExecuting, setFinishedExecuting ] = useState(undefined as boolean);
 
-  // map of instruction ids to labels, set and reset on the console component and used in the sim component
-  const [ mapInstrIdsToLabels, setMapInstrIdsToLabels ] = useState(new Map<number, string>());
-
-
   useEffect(() => {
     if (!network) {
       return;
@@ -42,6 +38,9 @@ const App: React.FC = () => {
     document.getElementById('new-svg').addEventListener('click',
       (ev) => {
         setNodeInfoClasses(['node-info']);
+
+        document.getElementById('liveinfo').style.removeProperty('display');
+        setTimeout( () => document.getElementById('node-info').style.removeProperty('height'), 300);
         scrollToTop();
         document.getElementById('app').style.overflowY = 'hidden';
       });
@@ -82,6 +81,10 @@ const App: React.FC = () => {
     document.getElementById('node-info').innerHTML = infoToPrint;
     if (document.getElementById('node-info').classList.length === 1) {
       setNodeInfoClasses(['node-info node-info-active']);
+
+      // remove right after the animation ends (0.3s)
+      setTimeout( () => document.getElementById('liveinfo').style.display = 'none', 300);
+      document.getElementById('node-info').style.height = '75vh';
       scrollToEnd();
     }
   };
@@ -146,7 +149,6 @@ const App: React.FC = () => {
         sentInstructions={instructionsToSend}
         setSentInstructions={setInstructionsToSend}
         setFinishedExecuting={setFinishedExecuting}
-        mapInstrIdsToLabels={mapInstrIdsToLabels}
       />
 
       <Console
@@ -154,8 +156,6 @@ const App: React.FC = () => {
         handleTextAreaInput={handleTextAreaInput}
         apiResponse={apiResponse}
         sentInstructions={instructionsToSend}
-        mapInstrIdsToLabels={mapInstrIdsToLabels}
-        setMapInstrIdsToLabels={setMapInstrIdsToLabels}
       />
       <div id="end"></div>
 

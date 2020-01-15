@@ -64,7 +64,7 @@
 	box-sizing: border-box;
 	height: var(--node-diameter);
 	width: var(--node-diameter);
-	background-color: rgba(24, 205, 250, 0.719);
+	background-color: rgba(24, 205, 250, 0.904);
 	border: 2px solid #282c34;
 	border-radius: 2px;
 	position: absolute;
