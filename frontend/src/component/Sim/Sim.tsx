@@ -7,6 +7,7 @@ interface SimProps {
 	net: Network;
 	getNodeInfo: (id: number) => void;
 	apiResponse: any;
+	setApiResponse: React.Dispatch<any>;
 	sentInstructions: Instruction[][];
 	setSentInstructions: React.Dispatch<React.SetStateAction<Instruction[][]>>;
 	setFinishedExecuting: React.Dispatch<React.SetStateAction<boolean>>;
@@ -30,7 +31,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 	}, [props.net]);
 
 	useEffect( () => {
-		if (!props.apiResponse) {
+		if (!props.apiResponse || instructionBlockToExecute !== undefined) {
 			return;
 		}
 
@@ -48,6 +49,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		if (instructionBlockToExecute === props.sentInstructions.length) {
 			console.log('executed all blocks!');
 			props.setFinishedExecuting(true);
+			setInstructionBlockToExecute(undefined); // reset ibToExecute
 			return;
 		}
 
@@ -242,6 +244,9 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			console.log('finished instr ' + thisMsg.instrId);
 			thisMsg.done = true;
 
+			// emit apiResponse progression (separate from instruction progression)
+			props.setApiResponse(JSON.parse(JSON.stringify(apiResponse)));
+
 			// barrier synchronization
 			const allInstr = props.sentInstructions;
 			const thisBlock = allInstr[instructionBlockToExecute];
@@ -270,6 +275,10 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		if (thisMsg.dir === 'recv' && thisMsg.msg.includes('final') && thisMsg.msg.includes('updateDataRange')) {
 			console.log('finished instr ' + thisMsg.instrId);
 			thisMsg.done = true;
+
+			// emit apiResponse progression (separate from instruction progression)
+			props.setApiResponse(JSON.parse(JSON.stringify(apiResponse)));
+
 			return;
 		}
 
@@ -283,6 +292,10 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		// ie. reading data on the same node
 		if (nextMsg.nodeId === thisMsg.nodeId) {
 			thisMsg.done = true;
+
+			// emit apiResponse progression (separate from instruction progression)
+			props.setApiResponse(JSON.parse(JSON.stringify(apiResponse)));
+
 			executeApiResponse(apiResponse, next);
 			return;
 		}
@@ -309,6 +322,10 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			});
 
 			thisMsg.done = true;
+
+			// emit apiResponse progression (separate from instruction progression)
+			props.setApiResponse(JSON.parse(JSON.stringify(apiResponse)));
+
 			return;
 		}
 
@@ -316,6 +333,11 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			(thisMsg.dir === 'recv' && thisMsg.msg.includes('final'))
 		) {
 			thisMsg.done = true;
+
+			// emit apiResponse progression (separate from instruction progression)
+			props.setApiResponse(JSON.parse(JSON.stringify(apiResponse)));
+
+			
 			return executeApiResponse(apiResponse, next);
 		}
 	}

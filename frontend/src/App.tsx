@@ -138,13 +138,13 @@ const App: React.FC = () => {
         net={network}
         getNodeInfo={getNodeInfo}
         apiResponse={apiResponse}
+        setApiResponse={setApiResponse}
         sentInstructions={instructionsToSend}
         setSentInstructions={setInstructionsToSend}
         setFinishedExecuting={setFinishedExecuting} 
       />
 
-      <Console ControlsProps={getControlsProps()} handleTextAreaInput={handleTextAreaInput} sentInstructions={instructionsToSend} />
-
+      <Console ControlsProps={getControlsProps()} handleTextAreaInput={handleTextAreaInput} apiResponse={apiResponse} sentInstructions={instructionsToSend} />
       <div id="end"></div>
 
       <div id='node-info' className={nodeInfoClasses[0]}>
