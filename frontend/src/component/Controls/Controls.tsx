@@ -10,6 +10,9 @@ export interface ControlsProps {
 
 	runState: string;
 	setRunState: React.Dispatch<React.SetStateAction<string>>;
+
+	// delivered by the Console component just so this component can delay resetting the instruction list
+	setInstrList?: React.Dispatch<React.SetStateAction<interpret.Instruction[]>>
 }
 
 const Controls: React.FunctionComponent<ControlsProps> = (props) => {
@@ -21,20 +24,37 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 
 		if (props.finishedExecuting) {
 			const btn = document.getElementById('run');
+			btn.innerHTML = 'reset';
 
-			btn.classList.remove('run-active');
-			btn.classList.remove('run-running');
-			btn.classList.remove('display-block');
-			btn.classList.remove('display-none');
-
-			btn.innerHTML = 'run';
-			(document.getElementById("textarea") as any).value = '';
+			btn.addEventListener('click', resetRunBtn);
 		}
+	}, [props.finishedExecuting]);
+
+	const resetRunBtn = () => {
+		const btn = document.getElementById('run');
+		btn.classList.remove('run-active');
+		btn.classList.remove('run-running');
+		btn.classList.remove('display-block');
+		btn.classList.remove('display-none');
+
+		btn.innerHTML = 'run';
+		(document.getElementById("textarea") as any).value = '';
 
 		props.setFinishedExecuting(undefined);
 		props.setRunButtonClasses(['run']);
 
-	}, [props.finishedExecuting]);
+		const toggleButtonsAndInfo = () => {
+			document.getElementById('prompt').classList.toggle('display-none');
+			document.getElementById('textarea').classList.toggle('display-none');
+			document.getElementById('liveinfo').classList.toggle('display-none');
+		};
+
+		// originally executed on console component, but this component handles reset now
+		toggleButtonsAndInfo();
+		props.setInstrList([] as interpret.Instruction[]);
+
+		btn.removeEventListener('click', resetRunBtn);
+	};
 
 	const changeRunStatus = (runOrControls: string) => {
 
@@ -81,9 +101,10 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 				// if using a real api, we would detect instructions to send and
 				// make an api request, then return the apiResponse to the app component
 				props.setInstructionsToSend(blocks);
-				scrollToTop();
-				btn.innerHTML = 'pause';
+				btn.innerHTML = 'wait';
 				btn.classList.add('run-running');
+
+				document.getElementById('run').click();
 			};
 
 		} else if(runOrControls === 'run' && running) {
@@ -109,6 +130,7 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 			// forward.classList.add('display-inline-block');
 
 		} else if (runOrControls === 'play') {
+
 			const msgs = document.getElementsByClassName('msg');
 
 			for (let i = 0; i < msgs.length; i++) {

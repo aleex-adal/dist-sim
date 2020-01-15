@@ -11,6 +11,7 @@ interface SimProps {
 	sentInstructions: Instruction[][];
 	setSentInstructions: React.Dispatch<React.SetStateAction<Instruction[][]>>;
 	setFinishedExecuting: React.Dispatch<React.SetStateAction<boolean>>;
+	mapInstrIdsToLabels: Map<number, string>;
  }
 
 const Sim: React.FunctionComponent<SimProps> = (props) => {
@@ -60,12 +61,19 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			
 			for (let i = 0; i < props.apiResponse.length; i++ ) {
 				if (props.apiResponse[i].instrId === instrId) {
-					executeApiResponse(props.apiResponse, i);
+					executeApiResponse(props.apiResponse, i, document.getElementById('run').innerHTML === 'wait');
 					break;
 				}
 			}
 
 		});
+
+		// this is basically manipulating app state by looking directly at the dom...
+		// goal is to pause the initial run button click. really bad obviously
+		// the only other relevant code is in controls run button click function
+		if (document.getElementById('run').innerHTML === 'wait') {
+			document.getElementById('run').innerHTML = 'pause';
+		}
 
 	}, [instructionBlockToExecute]);
 
@@ -223,7 +231,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		networkLatency?: number,
 		additionalDelay?: number,
 		done: boolean,
-	}], i: number) => {
+	}], i: number, pauseFirstAnimations?: boolean) => {
 
 		console.log('executing ' + i);
 		for (let ind = i-1; ind >= 0; --ind) {
@@ -307,13 +315,20 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			let delay = nextMsg.networkLatency + nextMsg.additionalDelay;
 
 			const msg = document.createElement('div');
-			const msgId = `instr${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}`;
+			const msgId = `instr_${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}_apiresindex_${i}`;
 			msg.setAttribute('class', `msg msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
 			msg.setAttribute('id', msgId);
 			document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
 			var div = document.getElementById(msgId);
+			div.style.lineHeight = div.offsetHeight.toString() + 'px';
 
-			div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s linear forwards`;
+
+			if (pauseFirstAnimations) {
+				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s linear forwards paused`;
+
+			} else {
+				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s linear forwards`;
+			}
 
 			div.addEventListener('animationend', () => {
 				console.log(`Animation ${msgId} ended`);

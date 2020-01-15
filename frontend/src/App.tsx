@@ -28,6 +28,10 @@ const App: React.FC = () => {
   // are we done executing the current set of instructions?
   const [ finishedExecuting, setFinishedExecuting ] = useState(undefined as boolean);
 
+  // map of instruction ids to labels, set and reset on the console component and used in the sim component
+  const [ mapInstrIdsToLabels, setMapInstrIdsToLabels ] = useState(new Map<number, string>());
+
+
   useEffect(() => {
     if (!network) {
       return;
@@ -141,10 +145,18 @@ const App: React.FC = () => {
         setApiResponse={setApiResponse}
         sentInstructions={instructionsToSend}
         setSentInstructions={setInstructionsToSend}
-        setFinishedExecuting={setFinishedExecuting} 
+        setFinishedExecuting={setFinishedExecuting}
+        mapInstrIdsToLabels={mapInstrIdsToLabels}
       />
 
-      <Console ControlsProps={getControlsProps()} handleTextAreaInput={handleTextAreaInput} apiResponse={apiResponse} sentInstructions={instructionsToSend} />
+      <Console
+        ControlsProps={getControlsProps()}
+        handleTextAreaInput={handleTextAreaInput}
+        apiResponse={apiResponse}
+        sentInstructions={instructionsToSend}
+        mapInstrIdsToLabels={mapInstrIdsToLabels}
+        setMapInstrIdsToLabels={setMapInstrIdsToLabels}
+      />
       <div id="end"></div>
 
       <div id='node-info' className={nodeInfoClasses[0]}>

@@ -10,13 +10,14 @@ interface ConsoleProps {
     apiResponse: any;
     handleTextAreaInput: (event: React.ChangeEvent<Element>) => void;
     sentInstructions: Instruction[][];
+    mapInstrIdsToLabels;
+    setMapInstrIdsToLabels;
 }
 
 const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
     const [ instrList, setInstrList ] = useState([] as Instruction[]);
     const [ apiResponseCopy, setApiResponseCopy ] = useState([]);
-    const [ mapInstrIdsToLabels, setMapInstrIdsToLabels ] = useState(new Map<number, string>());
 
     useEffect( () => {
         if (!props.apiResponse) {
@@ -42,9 +43,9 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
         // we're done executing
         } else {
-            toggleButtonsAndInfo();
-            setInstrList([] as Instruction[]);
-            setMapInstrIdsToLabels(new Map<number, string>());
+            // toggleButtonsAndInfo executed by the reset event listener on Controls component
+            // resetting the instruction list also done on the controls component
+            props.setMapInstrIdsToLabels(new Map<number, string>());
         }
 
     }, [props.ControlsProps.finishedExecuting]);
@@ -77,7 +78,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
     const getInstrLabel = (instr: any): any => {
 
-        let mapRes = mapInstrIdsToLabels.get(instr.instrId);
+        let mapRes = props.mapInstrIdsToLabels.get(instr.instrId);
         if (mapRes === undefined) {
             let label: string;
             let itemId: any;
@@ -98,7 +99,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
             }
 
             let repeatedInstrNumber = 0;
-            mapInstrIdsToLabels.forEach( currLabel => {
+            props.mapInstrIdsToLabels.forEach( currLabel => {
 
                 if (currLabel[0] === label[0] && currLabel[1] === label[1]) {
 
@@ -114,7 +115,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
                 label = label.concat('_' + repeatedInstrNumber);
             }
 
-            mapInstrIdsToLabels.set(instr.instrId, label);
+            props.mapInstrIdsToLabels.set(instr.instrId, label);
 
             label = label + ": ";
             return instr.done ? <s className='gray'>{label}</s> : label
@@ -157,7 +158,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
     return (
         <div id="console" className="console">
-        <Controls {...props.ControlsProps} />
+        <Controls {...props.ControlsProps} setInstrList={setInstrList} />
   
         <div id="prompt" className="before-textarea blink">>>></div>
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={props.handleTextAreaInput}></textarea>
@@ -170,7 +171,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
                         id={'instr' + instr.instrId.toString()}
                         key={key}
                         className={instrList[key].done ? 'gray' : 'sky'}
-                    >{'instr ' + getInstrLabel(instr)}{instr.done ? <s>{instr.text}</s> : instr.text}</div>
+                    >{'instr '}{getInstrLabel(instr)}{instr.done ? <s>{instr.text}</s> : instr.text}</div>
                 })}
             </div>
             

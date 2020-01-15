@@ -16,7 +16,7 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
 
     const [ eventStream ] = useState(new Subject<any>());
     const [ emittedEvents, setEmittedEvents ] = useState([]);
-    const [ finishedExecuting, setFinishedExecuting ] = useState(false);
+    const [ apiFinishedExecuting, setApiFinishedExecuting ] = useState(false);
 
     useEffect( () => {
         props.setNetwork(generateNetwork(10));
@@ -53,15 +53,15 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
     }, [props.sentInstructions]);
 
     useEffect( () => {
-        if (!finishedExecuting) {
+        if (!apiFinishedExecuting) {
             return;
         }
         props.setApiResponse(JSON.parse(JSON.stringify(emittedEvents)));
 
         setEmittedEvents([]);
-        setFinishedExecuting(false);
+        setApiFinishedExecuting(false);
         
-    }, [finishedExecuting]);
+    }, [apiFinishedExecuting]);
 
 
     const executeAllCommands = (instrLists: Instruction[][], index: number, subs: Subscription) => {
@@ -71,7 +71,7 @@ const Api: React.FunctionComponent<ApiProps> = (props) => {
             console.log(props.sentInstructions);
 
             subs.unsubscribe();
-            setFinishedExecuting(true);
+            setApiFinishedExecuting(true);
 
             return {done: true};
         }
