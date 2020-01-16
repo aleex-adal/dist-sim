@@ -9,6 +9,7 @@ import Api from './component/Api/Api';
 import { Instruction, buildNodeInfoString } from './util/interpret';
 import Network from './model/Network';
 import { ControlsProps } from './component/Controls/Controls';
+import { number } from 'prop-types';
 
 const App: React.FC = () => {
   const [menuClasses, setMenuClasses] = useState(['menu', 'overlay']);
@@ -21,12 +22,18 @@ const App: React.FC = () => {
   // this is set when the API component mounts. For a real API, make the request for a network object from the real API
   const [network, setNetwork] = useState(undefined as Network);
 
-  // initialize state to null values but keep those suckers typed
+  // initialize state to null values but keep those suckers typed... mostly
   const [instructionsToSend, setInstructionsToSend] = useState(undefined as Instruction[][]);
   const [apiResponse, setApiResponse] = useState(undefined);
 
   // are we done executing the current set of instructions?
   const [ finishedExecuting, setFinishedExecuting ] = useState(undefined as boolean);
+
+  // display progressive node info as simulation executes
+  // if we didn't have this state, getNodeInfo would display the completed node state immediately
+  // because the simulation has already been done on the displayed network
+  const [ mostRecentNodeInfo, setMostRecentNodeInfo ] = useState(new Map<number, string>());
+  const [ mostRecentStepCompleted, setMostRecentStepCompleted ] = useState([]);
 
   useEffect(() => {
     if (!network) {
@@ -53,7 +60,29 @@ const App: React.FC = () => {
       document.addEventListener('click', detectClickOffTextArea);
     });
 
+    //set most recent node info here??
+
   }, [network]);
+
+  useEffect( () => {
+    if (!apiResponse) {
+      setMostRecentStepCompleted([]);
+      return;
+    }
+
+    if (mostRecentStepCompleted.length === 0) {
+
+      let i = 0;
+      while (apiResponse[i].done) {
+        mostRecentNodeInfo.set(apiResponse[i].nodeId, apiResponse[i].nodeInfoString);
+        i++;
+      }
+
+      mostRecentStepCompleted[0] = i - 1;
+    }
+
+
+  }, [apiResponse]);
 
   const detectClickOffTextArea = (event: MouseEvent) => {
     
@@ -74,7 +103,7 @@ const App: React.FC = () => {
       const node = network.getNode(id);
       infoToPrint = buildNodeInfoString(node);
 
-    } else {
+    } else if (mostRecentNodeInfo) {
 
     }
 
