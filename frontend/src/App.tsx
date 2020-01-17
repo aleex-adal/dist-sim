@@ -73,6 +73,7 @@ const App: React.FC = () => {
       return;
     }
 
+    // console log this shit #errors
     let i = mostRecentStepCompleted.length ? mostRecentStepCompleted[0] : 0;
 
     while (apiResponse[i].done) {
