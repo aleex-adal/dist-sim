@@ -32,8 +32,8 @@ const App: React.FC = () => {
   // display progressive node info as simulation executes
   // if we didn't have this state, getNodeInfo would display the completed node state immediately
   // because the simulation has already been done on the displayed network
-  const [ mostRecentNodeInfo, setMostRecentNodeInfo ] = useState(new Map<number, string>());
-  const [ mostRecentStepCompleted, setMostRecentStepCompleted ] = useState([]);
+  const [ mostRecentNodeInfo ] = useState(new Map<number, string>());
+  const [ mostRecentStepCompleted, setMostRecentStepCompleted ] = useState([] as number[]);
 
   useEffect(() => {
     if (!network) {
@@ -60,7 +60,10 @@ const App: React.FC = () => {
       document.addEventListener('click', detectClickOffTextArea);
     });
 
-    //set most recent node info here??
+    // fill map with current node data
+    for (let i = 0; i < network.numNodes; i++) {
+      mostRecentNodeInfo.set(i, buildNodeInfoString(network.getNode(i)));
+    }
 
   }, [network]);
 
@@ -70,17 +73,14 @@ const App: React.FC = () => {
       return;
     }
 
-    if (mostRecentStepCompleted.length === 0) {
+    let i = mostRecentStepCompleted.length ? mostRecentStepCompleted[0] : 0;
 
-      let i = 0;
-      while (apiResponse[i].done) {
-        mostRecentNodeInfo.set(apiResponse[i].nodeId, apiResponse[i].nodeInfoString);
-        i++;
-      }
-
-      mostRecentStepCompleted[0] = i - 1;
+    while (apiResponse[i].done) {
+      mostRecentNodeInfo.set(apiResponse[i].nodeId, apiResponse[i].nodeInfoString);
+      i++;
     }
 
+    mostRecentStepCompleted[0] = i - 1;
 
   }, [apiResponse]);
 
@@ -97,15 +97,7 @@ const App: React.FC = () => {
 
   const getNodeInfo = (id: number) => {
 
-    let infoToPrint = '';
-
-    if (!apiResponse) {
-      const node = network.getNode(id);
-      infoToPrint = buildNodeInfoString(node);
-
-    } else if (mostRecentNodeInfo) {
-
-    }
+    let infoToPrint = mostRecentNodeInfo.get(id);
 
     document.getElementById('node-info').innerHTML = infoToPrint;
     if (document.getElementById('node-info').classList.length === 1) {
