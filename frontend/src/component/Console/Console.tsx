@@ -100,6 +100,8 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         let mapRes = undefined;
         let newMap = undefined as Map<number, string>;
 
+        console.log('getinstlabel called on instr id ' + instr.instrId);
+
         if (mapInstrIdsToLabels) {
             mapRes = mapInstrIdsToLabels.get(instr.instrId);
             
@@ -118,6 +120,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
                 label = instr.res.op;
                 itemId = instr.res.itemId;
             } else {
+                console.log('no payload, no res');
                 return '';
             }
 
@@ -144,6 +147,8 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
             if (repeatedInstrNumber) {
                 label = label.concat('_' + repeatedInstrNumber);
             }
+
+            console.log('label for instr id ' + instr.instrId + ' is ' + label);
 
             if (mapInstrIdsToLabels) {
                 mapInstrIdsToLabels.set(instr.instrId, label);

@@ -220,18 +220,19 @@ export function interpretOneCommand(instrId: number, input: string, executeComma
 
     // now, actually execute the commands lol
     const n = network.getNode(nodeId);
+    const additionalDelayMs = additionalDelay * 100;
 
     if (op === 'read') {
-        return n.read(itemId, additionalDelay, instrId);
+        return n.read(itemId, additionalDelayMs, instrId);
 
     } else if (op === 'delete') {
-        return n.delete(itemId, additionalDelay, instrId);
+        return n.delete(itemId, additionalDelayMs, instrId);
 
     } else if (op === 'insert') {
-        return n.insert(inputObj, additionalDelay, instrId);
+        return n.insert(inputObj, additionalDelayMs, instrId);
  
     } else if (op === 'update') {
-        return n.update(itemId, inputObj, additionalDelay, instrId);
+        return n.update(itemId, inputObj, additionalDelayMs, instrId);
     }
 }
 
@@ -269,8 +270,7 @@ export function buildNodeInfoString(n: node): string {
     clockString = clockString.split(']')[0];
     clockString = "<span style='color: #18cdfa'>[</span>".concat(clockString).concat("<span style='color: #18cdfa'>]</span>");
 
-    let infoToPrint = "<h3 class='nodeinfo-h3'>node info</h3>" + 
-      "<span style='color: #f1ef43'>nodeId: </span>"          + n.id                      + '</br>' +
+    let infoToPrint = "<h3 class='nodeinfo-h3'>node " + n.id + " info</h3>" + 
       "<span style='color: #f1ef43'>clock: </span>"       + clockString                   + '</br>' +
       "<span style='color: #f1ef43'>connections: </span>" + JSON.stringify(n.connections) + '</br>' +
       "<span style='color: #f1ef43'>dataRange: </span>"   + dataRangeString               + '</br>' +
@@ -280,8 +280,9 @@ export function buildNodeInfoString(n: node): string {
     return infoToPrint;
   };
 
-export function buildPayloadInfoString(payload: payload): string {
+export function buildPayloadInfoString(payload: payload, msgId: string): string {
     console.log(payload);
+    const label = document.getElementById(msgId).innerHTML;
 
     let pathString = '';
     if (payload.dir === 'out') {
@@ -335,7 +336,7 @@ export function buildPayloadInfoString(payload: payload): string {
 
     let sourceClockString = "<span style='color: #f1ef43'>sourceClock (node " + pathString[0] + "): </span>" + JSON.stringify(payload.sourceClock) + '</br>';
 
-    let infoToPrint = "<h3 class='payloadinfo-h3'>payload info</h3>" +
+    let infoToPrint = "<h3 class='payloadinfo-h3'>payload " + label + " info</h3>" +
     "<span style='color: #f1ef43'>path: </span>" + pathString + '</br>' +
     "<span style='color: #f1ef43'>operation: </span>" + opString + '</br>' +
     itemIdString + itemString + msgString + sourceClockString;

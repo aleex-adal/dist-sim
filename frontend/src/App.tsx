@@ -96,10 +96,11 @@ const App: React.FC = () => {
 
   const getNodeInfo = (id: number) => displayInfo(mostRecentNodeInfo.get(id));
 
-  const getPayloadInfo = (apiResIndex: number) => 
+  const getPayloadInfo = (apiResIndex: number, msgId: string) => 
     displayInfo(
       buildPayloadInfoString(
-        apiResponse[apiResIndex].payload
+        apiResponse[apiResIndex].payload,
+        msgId
       )
     );
 

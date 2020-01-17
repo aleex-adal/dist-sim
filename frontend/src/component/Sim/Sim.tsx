@@ -6,7 +6,7 @@ import { Instruction } from '../../util/interpret';
 interface SimProps {
 	net: Network;
 	getNodeInfo: (id: number) => void;
-	getPayloadInfo: (apiResIndex: number) => void;
+	getPayloadInfo: (apiResIndex: number, msgId: string) => void;
 	apiResponse: any;
 	setApiResponse: React.Dispatch<any>;
 	sentInstructions: Instruction[][];
@@ -312,7 +312,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			(thisMsg.dir === 'send' && thisMsg.msg.includes('middle')) ||
 			(thisMsg.dir === 'send' && thisMsg.msg.includes('final'))
 		) {	
-			let delay = nextMsg.networkLatency + nextMsg.additionalDelay;
+			let delay = 1 + (nextMsg.networkLatency/100) + (nextMsg.additionalDelay/100);
 
 			const msg = document.createElement('div');
 			const msgId = `instr_${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}_apiresindex_${i}`;
@@ -323,10 +323,10 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			div.style.lineHeight = div.offsetHeight.toString() + 'px';
 
 			if (pauseFirstAnimations) {
-				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s linear forwards paused`;
+				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay}s linear forwards paused`;
 
 			} else {
-				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s linear forwards`;
+				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay}s linear forwards`;
 			}
 
 			div.addEventListener('animationend', () => {
@@ -335,7 +335,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 				executeApiResponse(apiResponse, next);
 			});
 
-			div.addEventListener('click', () => props.getPayloadInfo(i));
+			div.addEventListener('click', () => props.getPayloadInfo(i, msgId));
 
 			thisMsg.done = true;
 
