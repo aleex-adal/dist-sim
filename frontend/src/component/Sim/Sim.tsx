@@ -6,6 +6,7 @@ import { Instruction } from '../../util/interpret';
 interface SimProps {
 	net: Network;
 	getNodeInfo: (id: number) => void;
+	getPayloadInfo: (apiResIndex: number) => void;
 	apiResponse: any;
 	setApiResponse: React.Dispatch<any>;
 	sentInstructions: Instruction[][];
@@ -321,7 +322,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			var div = document.getElementById(msgId);
 			div.style.lineHeight = div.offsetHeight.toString() + 'px';
 
-
 			if (pauseFirstAnimations) {
 				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay/20}s linear forwards paused`;
 
@@ -334,6 +334,8 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 				div.remove();
 				executeApiResponse(apiResponse, next);
 			});
+
+			div.addEventListener('click', () => props.getPayloadInfo(i));
 
 			thisMsg.done = true;
 

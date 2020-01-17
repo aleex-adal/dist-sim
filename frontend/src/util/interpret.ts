@@ -1,5 +1,6 @@
 import Network from "../model/Network";
 import node from "../model/node";
+import payload from "../model/payload";
 
 export interface Instruction {
     instrId: number,
@@ -237,14 +238,14 @@ export function interpretOneCommand(instrId: number, input: string, executeComma
 export function buildNodeInfoString(n: node): string {
     let dataRangeString = '[{';
     for (let i = 0; i < n.dataRange.length; i++) {
-      dataRangeString = dataRangeString.concat('range: ' + n.dataRange[i].start + ' => ' + n.dataRange[i].end + ', full: ' + n.dataRange[i].full);
+      dataRangeString = dataRangeString.concat(n.dataRange[i].start + ' => ' + n.dataRange[i].end);
       if (i + 1 < n.dataRange.length) {
         dataRangeString = dataRangeString.concat('}, {');
       }
     }
     dataRangeString = dataRangeString.concat('}]');
 
-    let dataSliceString = "<span style='color: #18cdfa'>[</span></br>";
+    let dataSliceString = "<span style=''>[</span></br>";
     const it = n.dataSlice.entries();
 
     let val = it.next().value;
@@ -261,14 +262,84 @@ export function buildNodeInfoString(n: node): string {
         dataSliceString = dataSliceString.concat("<span style='color: #f0d976'>}</span></br>");
       }
     }
-    dataSliceString = dataSliceString.concat("<span style='color: #18cdfa'>]</span>");
+    dataSliceString = dataSliceString.concat("<span style=''>]</span>");
 
-    let infoToPrint = "<span style='color: #dd9f58'>{</span>" + 
-      "<span style='color: #f1ef43'>nodeId: </span>"          + n.id                          + ',</br>' +
-      "<span style='color: #f1ef43'>connections: </span>" + JSON.stringify(n.connections) + ',</br>' +
-      "<span style='color: #f1ef43'>dataRange: </span>"   + dataRangeString                  + ',</br>' +
-      "<span style='color: #f1ef43'>dataSlice: </span>"   + dataSliceString   + ',</br>' +
-      "<span style='color: #f1ef43'>clock: </span>"       + JSON.stringify(n.clock)       + "<span style='color: #dd9f58'>}</span>";
+    let clockString = JSON.stringify(n.clock);
+    clockString = clockString.split('[')[1];
+    clockString = clockString.split(']')[0];
+    clockString = "<span style='color: #18cdfa'>[</span>".concat(clockString).concat("<span style='color: #18cdfa'>]</span>");
+
+    let infoToPrint = "<h3 class='nodeinfo-h3'>node info</h3>" + 
+      "<span style='color: #f1ef43'>nodeId: </span>"          + n.id                      + '</br>' +
+      "<span style='color: #f1ef43'>clock: </span>"       + clockString                   + '</br>' +
+      "<span style='color: #f1ef43'>connections: </span>" + JSON.stringify(n.connections) + '</br>' +
+      "<span style='color: #f1ef43'>dataRange: </span>"   + dataRangeString               + '</br>' +
+      "<span style='color: #f1ef43'>dataSlice: </span>"   + dataSliceString
+    //   + "<span style='color: #dd9f58'>}</span>"
     
     return infoToPrint;
-  }
+  };
+
+export function buildPayloadInfoString(payload: payload): string {
+    console.log(payload);
+
+    let pathString = '';
+    if (payload.dir === 'out') {
+
+        for (let i = 0; i < payload.path.length; i++) {
+
+            pathString = pathString.concat(payload.path[i].toString());
+
+            if (i + 1 < payload.path.length) {
+                pathString = pathString.concat(' => ');
+            }
+        }
+
+    } else {
+
+        for (let i = payload.path.length - 1; i >= 0; i--) {
+
+            pathString = pathString.concat(payload.path[i].toString());
+
+            if (i - 1 >= 0) {
+                pathString = pathString.concat(' => ');
+            }
+        }
+    }
+
+    let opString = '';
+    if (payload.op === 'r') {
+        opString = 'read';
+    } else if (payload.op === 'u') {
+        opString = 'update';
+    } else if (payload.op === 'i') {
+        opString = 'insert';
+    } else if (payload.op === 'd') {
+        opString = 'delete';
+    }
+
+    let itemIdString = '';
+    if (payload.itemId) {
+        itemIdString =     "<span style='color: #f1ef43'>itemId: </span>" + payload.itemId + '</br>';
+    }
+
+    let itemString = '';
+    if (payload.item) {
+        itemString =     "<span style='color: #f1ef43'>item: </span>" + JSON.stringify(payload.item) + '</br>';
+    }
+
+    let msgString = '';
+    if (payload.msg) {
+        msgString =     "<span style='color: #f1ef43'>msg: </span>" + payload.msg + '</br>';
+    }
+
+    let sourceClockString = "<span style='color: #f1ef43'>sourceClock (node " + pathString[0] + "): </span>" + JSON.stringify(payload.sourceClock) + '</br>';
+
+    let infoToPrint = "<h3 class='payloadinfo-h3'>payload info</h3>" +
+    "<span style='color: #f1ef43'>path: </span>" + pathString + '</br>' +
+    "<span style='color: #f1ef43'>operation: </span>" + opString + '</br>' +
+    itemIdString + itemString + msgString + sourceClockString;
+
+
+    return infoToPrint;
+}

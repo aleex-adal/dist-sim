@@ -10,6 +10,8 @@ export interface ControlsProps {
 
 	runState: string;
 	setRunState: React.Dispatch<React.SetStateAction<string>>;
+	
+	setMostRecentStepCompleted: React.Dispatch<React.SetStateAction<number[]>>;
 
 	// delivered by the Console component just so this component can delay resetting the instruction list
 	setInstrList?: React.Dispatch<React.SetStateAction<interpret.Instruction[]>>
@@ -59,6 +61,7 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 		// instructions still exist at this point. very frustrating
 		props.setInstrList([] as interpret.Instruction[]);
 		props.setApiResponseCopy([]);
+		props.setMostRecentStepCompleted([]);
 
 		btn.removeEventListener('click', resetRunBtn);
 	};

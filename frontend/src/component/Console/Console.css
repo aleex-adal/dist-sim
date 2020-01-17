@@ -65,10 +65,26 @@ textarea {
     color: #f1f5fd;
 }
 
-.liveinfo h3 {
+.liveinfo-h3 {
     margin: 0;
     text-align: center;
     color: #f1ef43;
+    font-weight: normal;
+}
+
+.nodeinfo-h3 {
+    margin: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #f1ef43;
+    font-weight: normal;
+}
+
+.payloadinfo-h3 {
+    margin: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #18cdfa;
     font-weight: normal;
 }
 

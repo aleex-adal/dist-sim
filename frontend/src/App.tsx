@@ -6,7 +6,7 @@ import Sim from './component/Sim/Sim';
 import Console from './component/Console/Console';
 import Api from './component/Api/Api';
 
-import { Instruction, buildNodeInfoString } from './util/interpret';
+import { Instruction, buildNodeInfoString, buildPayloadInfoString } from './util/interpret';
 import Network from './model/Network';
 import { ControlsProps } from './component/Controls/Controls';
 import { number } from 'prop-types';
@@ -69,19 +69,17 @@ const App: React.FC = () => {
 
   useEffect( () => {
     if (!apiResponse) {
-      setMostRecentStepCompleted([]);
       return;
     }
 
-    // console log this shit #errors
     let i = mostRecentStepCompleted.length ? mostRecentStepCompleted[0] : 0;
 
-    while (apiResponse[i].done) {
+    while (apiResponse[i] && apiResponse[i].done) {
       mostRecentNodeInfo.set(apiResponse[i].nodeId, apiResponse[i].nodeInfoString);
       i++;
     }
 
-    mostRecentStepCompleted[0] = i - 1;
+    mostRecentStepCompleted[0] = i > 0 ? i - 1 : 0;
 
   }, [apiResponse]);
 
@@ -96,11 +94,17 @@ const App: React.FC = () => {
     }
   }
 
-  const getNodeInfo = (id: number) => {
+  const getNodeInfo = (id: number) => displayInfo(mostRecentNodeInfo.get(id));
 
-    let infoToPrint = mostRecentNodeInfo.get(id);
+  const getPayloadInfo = (apiResIndex: number) => 
+    displayInfo(
+      buildPayloadInfoString(
+        apiResponse[apiResIndex].payload
+      )
+    );
 
-    document.getElementById('node-info').innerHTML = infoToPrint;
+  const displayInfo = (info: string) => {
+    document.getElementById('node-info').innerHTML = info;
     if (document.getElementById('node-info').classList.length === 1) {
       setNodeInfoClasses(['node-info node-info-active']);
 
@@ -147,7 +151,8 @@ const App: React.FC = () => {
       setFinishedExecuting: setFinishedExecuting,
       setRunButtonClasses: setRunButtonClasses,
       runState: runState,
-      setRunState: setRunState
+      setRunState: setRunState,
+      setMostRecentStepCompleted: setMostRecentStepCompleted,
     };
   }
 
@@ -166,6 +171,7 @@ const App: React.FC = () => {
       <Sim 
         net={network}
         getNodeInfo={getNodeInfo}
+        getPayloadInfo={getPayloadInfo}
         apiResponse={apiResponse}
         setApiResponse={setApiResponse}
         sentInstructions={instructionsToSend}

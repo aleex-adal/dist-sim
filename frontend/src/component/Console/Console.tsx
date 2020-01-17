@@ -204,7 +204,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={props.handleTextAreaInput}></textarea>
         <div id="liveinfo" className="liveinfo display-none">
 
-            <h3>executing instructions:</h3>
+            <h3 className={'liveinfo-h3'}>executing instructions:</h3>
             <div className='instrprogress'>
                 {instrList.map((instr, key) => {
                     return <div
@@ -216,7 +216,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
             </div>
             
 
-            <h3>all system actions:</h3>
+            <h3 className={'liveinfo-h3'}>all system actions:</h3>
             <ul className="instrlist" id="instrlist">
                 {apiResponseCopy.map( (val, key) => {
                     return (
