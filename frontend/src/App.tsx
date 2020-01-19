@@ -178,6 +178,8 @@ const App: React.FC = () => {
         sentInstructions={instructionsToSend}
         setSentInstructions={setInstructionsToSend}
         setFinishedExecuting={setFinishedExecuting}
+        network={network}
+        mostRecentNodeInfo={mostRecentNodeInfo}
       />
 
       <Console

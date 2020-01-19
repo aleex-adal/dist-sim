@@ -326,7 +326,7 @@ export function buildPayloadInfoString(payload: payload, msgId: string): string 
 
     let itemString = '';
     if (payload.item) {
-        itemString =     "<span style='color: #f1ef43'>item: </span>" + JSON.stringify(payload.item) + '</br>';
+        itemString =     "<span style='color: #f1ef43'>item: </span>" + JSON.stringify(payload.item, null, 1) + '</br>';
     }
 
     let msgString = '';

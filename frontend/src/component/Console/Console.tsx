@@ -100,8 +100,6 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         let mapRes = undefined;
         let newMap = undefined as Map<number, string>;
 
-        console.log('getinstlabel called on instr id ' + instr.instrId);
-
         if (mapInstrIdsToLabels) {
             mapRes = mapInstrIdsToLabels.get(instr.instrId);
             
@@ -109,58 +107,89 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
             newMap = new Map<number, string>();
         }
 
+        // define labels for all instructions at once
         if (mapRes === undefined) {
             let label: string;
-            let itemId: any;
 
-            if (instr.hasOwnProperty("payload")) {
-                label = instr.payload.op;
-                itemId = instr.payload.itemId;
-            } else if (instr.hasOwnProperty("res")) {
-                label = instr.res.op;
-                itemId = instr.res.itemId;
-            } else {
-                console.log('no payload, no res');
-                return '';
-            }
+            let labelList = [];
+            for (let i = 0; i < instrList.length; i++) {
+                const thisInstr = instrList[i];
+                const tokens = thisInstr.text.split(' ');
+                let opIndex = 0;
+                let done = false;
 
-            
-            if (itemId && label !== 'i') {
-                label = label.concat(itemId);
-            }
+                while (!done) {
+                    if (tokens[opIndex] === 'read' || tokens[opIndex] === 'r') {
+                        label = 'r';
+                        done = true;
 
-            let repeatedInstrNumber = 0;
-            if (mapInstrIdsToLabels) {
-                mapInstrIdsToLabels.forEach( currLabel => {
+                    } else if (tokens[opIndex] === 'update' || tokens[opIndex] === 'u') {
+                        label = 'u';
+                        done = true;
 
-                    if (currLabel[0] === label[0] && currLabel[1] === label[1]) {
-    
-                        if (currLabel.includes('_') && parseInt(currLabel[currLabel.length - 1]) >= repeatedInstrNumber) {
-                            repeatedInstrNumber = parseInt(currLabel[currLabel.length - 1]) + 1;
-                        } else {
-                            repeatedInstrNumber = 2;
+                    } else if (tokens[opIndex] === 'insert' || tokens[opIndex] === 'i') {
+                        label = 'i';
+                        done = true;
+
+                    } else if (tokens[opIndex] === 'delete' || tokens[opIndex] === 'd') {
+                        label = 'd';
+                        done = true;
+                    }
+
+                    opIndex++;
+                }
+
+                if (tokens[opIndex] === 'item' || tokens[opIndex] === 'i' ) {
+                    opIndex++;
+                }
+
+                if (label !== 'i') {
+                    label = label.concat(tokens[opIndex]);
+
+                    for (let i = labelList.length - 1; i >= 0; i--) {
+                        const currLabel = labelList[i].label;
+                        if (currLabel[0] === label[0] && currLabel[1] === label[1]) {
+
+                            if (currLabel.includes('_')) {
+                                label = label.concat('_' + (parseInt(currLabel[currLabel.length - 1]) + 1).toString());
+                            } else {
+                                label = label.concat('_2');
+                            }
+
                         }
                     }
-                });
-            }
 
-            if (repeatedInstrNumber) {
-                label = label.concat('_' + repeatedInstrNumber);
-            }
+                } else {
 
-            console.log('label for instr id ' + instr.instrId + ' is ' + label);
+                    for (let i = labelList.length - 1; i >= 0; i--) {
+                        const currLabel = labelList[i].label;
+                        if (currLabel[0] === label[0]) {
 
-            if (mapInstrIdsToLabels) {
-                mapInstrIdsToLabels.set(instr.instrId, label);
-            } else {
-                newMap.set(instr.instrId, label);
-                if (document.getElementById('run').innerHTML !== 'run') {
-                    // this will set a new map for the second instruction ONLY
-                    // when the run button's innerHTML is not 'run'
-                    // this indicates that new instructions are on the way
-                    setMapInstrIdsToLabels(newMap);
+                            if (currLabel.includes('_')) {
+                                label = label.concat('_' + (parseInt(currLabel[currLabel.length - 1]) + 1).toString());
+                            } else {
+                                label = label.concat('_2');
+                            }
+
+                        }
+                    }
                 }
+
+                labelList.push({instrId: thisInstr.instrId, label: label});
             }
+
+            labelList.forEach( li => {
+                newMap.set(li.instrId, li.label);
+            });
+
+            if (document.getElementById('run').innerHTML !== 'run') {
+                // this will set a new map for the second instruction ONLY
+                // when the run button's innerHTML is not 'run'
+                // this indicates that new instructions are on the way
+                setMapInstrIdsToLabels(newMap);
+            }
+
+            label = newMap.get(instr.instrId);
 
             label = label + ": ";
             return instr.done ? <s className='gray'>{label}</s> : label

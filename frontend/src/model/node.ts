@@ -253,7 +253,7 @@ export default class node {
                 payload.itemId = payload.newRange.start;
                 this.dataSlice.set(payload.itemId, payload.item);
                 retItem = this.dataSlice.get(payload.itemId);
-                broadcast = 'new range ' + JSON.stringify(payload.newRange) + ' added';
+                broadcast = 'new range ' + JSON.stringify(payload.newRange, null, '</br>') + ' added';
 
                 changedDataRange = payload.newRange;
             }

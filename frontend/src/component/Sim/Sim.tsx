@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Sim.css';
 import Network from '../../model/Network';
-import { Instruction } from '../../util/interpret';
+import { Instruction, buildNodeInfoString } from '../../util/interpret';
 
 interface SimProps {
 	net: Network;
@@ -12,6 +12,10 @@ interface SimProps {
 	sentInstructions: Instruction[][];
 	setSentInstructions: React.Dispatch<React.SetStateAction<Instruction[][]>>;
 	setFinishedExecuting: React.Dispatch<React.SetStateAction<boolean>>;
+
+	// so sim can update shown info for "silent" updates like datarange changes during the sim
+	network: Network;
+	mostRecentNodeInfo: Map<number, string>;
  }
 
 const Sim: React.FunctionComponent<SimProps> = (props) => {
@@ -19,6 +23,32 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 	const [ instructionBlockToExecute, setInstructionBlockToExecute ] = useState(undefined as number);
 
 	useEffect(() => {
+
+		setTimeout(() => {
+			console.log(document.getElementById('6').getBoundingClientRect());
+			const newDiv = document.createElement('div');
+			newDiv.setAttribute('class', 'indicator');
+			newDiv.setAttribute('id', 'indicator');
+			document.getElementById('sim-wrapper').appendChild(newDiv);
+
+			const x1 = document.getElementById('6').getBoundingClientRect().left + window.pageXOffset + 'px';
+			const y1 = document.getElementById('6').getBoundingClientRect().top + window.pageYOffset + 'px';
+
+			const x2 = document.getElementById('1').getBoundingClientRect().left + window.pageXOffset + 'px';
+			const y2 = document.getElementById('1').getBoundingClientRect().top + window.pageYOffset + 'px';
+
+			document.getElementById('indicator').style.left = x1;
+			document.getElementById('indicator').style.top = y1;
+
+			(document.styleSheets[0] as any).insertRule(
+				`@keyframes indicator-animation { from{ left:${x1}; top:${y1}   } to{ left:${x2}; top:${y2} } }`
+			);
+
+			document.getElementById('indicator').style.animation = 'indicator-animation 2s linear forwards';
+
+		}, 3000);
+
+		// sizeSimWrapper();
 		// TODO: make this work for resizing too
 		// window.addEventListener('resize', sizeOuterCircle);
 		sizeOuterCircle();
@@ -51,6 +81,12 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			console.log('executed all blocks!');
 			props.setFinishedExecuting(true);
 			setInstructionBlockToExecute(undefined); // reset ibToExecute
+
+			// fill map with current node data to capture info from silent changes such as
+			// datarange update notifications on insert (seen in clocks of all nodes)
+			for (let i = 0; i < props.network.numNodes; i++) {
+				props.mostRecentNodeInfo.set(i, buildNodeInfoString(props.network.getNode(i)));
+			}
 			return;
 		}
 
@@ -76,6 +112,12 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		}
 
 	}, [instructionBlockToExecute]);
+
+	const sizeSimWrapper = () => {
+		document.getElementById('sim-wrapper-wrapper').style.paddingLeft = 200 + 'px';
+		document.getElementById('sim-wrapper-wrapper').style.paddingRight = 200 + 'px';
+
+	};
 
 	const sizeOuterCircle = () => {
 		var width = document.getElementById("sim-wrapper").offsetWidth;
@@ -169,8 +211,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		});
 		
 		document.getElementById('circle-wrapper').insertBefore(newSvg, document.getElementById('0'));
-
-		// setTimeout( () => document.getElementById('msg').style.animation = 'msg1 1s linear forwards', 3000);		
 	};
 
 	const insertAnimations = (numNodes: number) => {
@@ -194,11 +234,11 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 					y2 = document.getElementById(j.toString()).getBoundingClientRect().top - subtractBy - (msgWidth/2);
 				} else {
 					/// this doesnt work lol
-					x1 = document.getElementById(i.toString()).getBoundingClientRect().left - 122; // trial and error baby
-					y1 = document.getElementById(i.toString()).getBoundingClientRect().top - 68;
+					x1 = document.getElementById(i.toString()).getBoundingClientRect().left
+					y1 = document.getElementById(i.toString()).getBoundingClientRect().top
 	
-					x2 = document.getElementById(j.toString()).getBoundingClientRect().left - 122;
-					y2 = document.getElementById(j.toString()).getBoundingClientRect().top - 68;
+					x2 = document.getElementById(j.toString()).getBoundingClientRect().left
+					y2 = document.getElementById(j.toString()).getBoundingClientRect().top
 				}
 				
 				// going right or left
@@ -360,11 +400,13 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 
 	return (
-		<div id="sim-wrapper" className="sim-wrapper">
-		<div id="circle-wrapper" className="circle-wrapper">
+		// <div id="sim-wrapper-wrapper" className="sim-wrapper-wrapper">
+			<div id="sim-wrapper" className="sim-wrapper">
+				<div id="circle-wrapper" className="circle-wrapper">
 
-		</div>
-		</div>
+				</div>
+			</div>
+		// </div>
 	);
 }
 
