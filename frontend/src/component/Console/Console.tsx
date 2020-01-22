@@ -17,6 +17,8 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
     const [ instrList, setInstrList ] = useState([] as Instruction[]);
     const [ apiResponseCopy, setApiResponseCopy ] = useState([]);
     const [ mapInstrIdsToLabels, setMapInstrIdsToLabels ] = useState(new Map<number, string>());
+    const [ displayResponse, setDisplayResponse ] = useState([] as boolean[]);
+    
 
     useEffect( () => {
         if (!props.apiResponse) {
@@ -74,7 +76,13 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
     useEffect( () => {
         if (instrList.length === 0) {
             setMapInstrIdsToLabels(undefined);
-            // set this map to undefined so that 
+            // set this map to undefined so labels reset for next instructions
+
+            setDisplayResponse([]);
+
+        } else if (displayResponse.length === 0) {
+
+            instrList.forEach( instr => displayResponse[instr.instrId] = false );
         }
     }, [instrList]);
 
@@ -95,7 +103,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         setInstrList(instrList);
     };
 
-    const getInstrLabel = (instr: any): any => {
+    const getInstrLabel = (instr: any, includeColon?: boolean): any => {
 
         let mapRes = undefined;
         let newMap = undefined as Map<number, string>;
@@ -191,12 +199,10 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
             label = newMap.get(instr.instrId);
 
-            label = label + ": ";
-            return instr.done ? <s className='gray'>{label}</s> : label
+            return includeColon === false ? label : label + ": ";
 
         } else {
-            mapRes = mapRes + ": ";
-            return instr.done ? <s className='gray'>{mapRes}</s> : mapRes
+            return includeColon === false ? mapRes : mapRes + ": ";
         }
     };
 
@@ -229,6 +235,45 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         }
     };
 
+    const getInstrClasses = (instrList: any[], key: number): string => {
+        let c = instrList[key].done ? 'gray' : 'sky';
+        if (key === 0) {
+            c = c.concat(' first');
+        }
+        if (key === instrList.length - 1) {
+            c = c.concat(' last');
+        }
+        return c;
+    };
+
+    const showResponse = (instrId: number): void => {
+        const newState = [];
+        displayResponse.forEach( (val, i) => {
+            newState[i] = i === instrId ? true : val;
+        });
+        setDisplayResponse(newState);
+    };
+
+    const getResponseText = (instr: any): any => {
+
+        let str = instr.res.itemId ? `itemId: ${instr.res.itemId}, ` : '';
+
+        if (instr.res.item) {
+            Object.keys(instr.res.item).forEach( (key) => {
+                str = str.concat(key + ': ' + instr.res.item[key] + ', ');
+            });
+            str = str.slice(0, -2); 
+        }
+
+        return (<>
+            <span style={{color: '#f1ef43'}}>msg: </span><span dangerouslySetInnerHTML={{__html: instr.res.msg}}></span><br></br>
+            <span style={{color: '#f1ef43'}}>item: </span>
+            <span style={{color: '#f0d976'}}>{'{'}</span>
+                {str}
+            <span style={{color: '#f0d976'}}>{'}'}</span>
+        </>)
+    };
+
 
     return (
         <div id="console" className="console">
@@ -238,24 +283,30 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
         <textarea id="textarea" onClick={() => document.getElementById('prompt').classList.remove('blink')} onChange={props.handleTextAreaInput}></textarea>
         <div id="liveinfo" className="liveinfo display-none">
 
-            <h3 className={'liveinfo-h3'}>executing instructions:</h3>
-            <div className='instrprogress'>
+            <h3 className={'liveinfo-h3 top-margin-20'}>executing instructions:</h3>
+            <ul className='instrlist'>
                 {instrList.map((instr, key) => {
-                    return <div
+                    return <li
                         id={'instr' + instr.instrId.toString()}
                         key={key}
-                        className={instrList[key].done ? 'gray' : 'sky'}
-                    >{'instr '}{getInstrLabel(instr)}{instr.done ? <s>{instr.text}</s> : instr.text}</div>
+                        className={getInstrClasses(instrList, key)}
+                    >
+                        {instr.done ? <s>{'instr ' + getInstrLabel(instr)}</s> : 'instr ' + getInstrLabel(instr)}
+                        {instr.text}
+
+                        {instr.done && !displayResponse[instr.instrId] ? <div className="view-response" onClick={() => showResponse(instr.instrId)}>view response</div> : ''}
+                        {displayResponse[instr.instrId] ? <div className='response-text'><span className='blue'> instr {getInstrLabel(instr, false)} response: </span><br></br>{getResponseText(instr)}</div> : ''}
+                    </li>
                 })}
-            </div>
+            </ul>
             
 
-            <h3 className={'liveinfo-h3'}>all system actions:</h3>
+            <h3 className={'liveinfo-h3 top-margin'}>all system actions:</h3>
             <ul className="instrlist" id="instrlist">
                 {apiResponseCopy.map( (val, key) => {
                     return (
                         <li key={key} className={key === 0 ? 'first' : key === apiResponseCopy.length - 1 ? 'last' : ''}>
-                            <div className="listlabel sky">{getInstrLabel(val)}</div>
+                            {val.done ? <div className='listlabel gray'><s>{getInstrLabel(val)}</s></div> : <div className='listlabel sky'>{getInstrLabel(val)}</div>}
                             <div className={'listmsg ' + getMsgColor(val)}>{val.msg}</div>
                         </li>
                     )

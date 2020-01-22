@@ -44,12 +44,14 @@ const App: React.FC = () => {
     document.getElementById("textarea").style.height = (document.getElementById("console").offsetHeight - 30 - document.getElementById("run").offsetHeight) + 'px';
     document.getElementById('circle-wrapper').addEventListener('click',
       (ev) => {
-        setNodeInfoClasses(['node-info']);
+        if ((ev.target as Element).id === 'circle-wrapper') {
+          setNodeInfoClasses(['node-info']);
 
-        document.getElementById('liveinfo').style.removeProperty('display');
-        setTimeout( () => document.getElementById('node-info').style.removeProperty('height'), 300);
-        scrollToTop();
-        document.getElementById('app').style.overflowY = 'hidden';
+          document.getElementById('liveinfo').style.removeProperty('display');
+          setTimeout( () => document.getElementById('node-info').style.removeProperty('height'), 300);
+          // scrollToTop();
+          document.getElementById('app').style.overflowY = 'hidden';
+        }
       });
 
     // when user clicks off of the textarea, scroll up so there isn't awks whitespace at the bottom
@@ -112,7 +114,7 @@ const App: React.FC = () => {
       // remove right after the animation ends (0.3s)
       setTimeout( () => document.getElementById('liveinfo').style.display = 'none', 300);
       document.getElementById('node-info').style.height = '75vh';
-      scrollToEnd();
+      // scrollToEnd();
     }
   };
 

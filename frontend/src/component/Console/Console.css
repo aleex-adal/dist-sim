@@ -124,3 +124,26 @@ textarea {
 .listmsg {
     display: inline-block;
 }
+
+.view-response {
+    display: inline-block;
+    color: #18cdfa;
+    border: 2px solid #18cdfa;
+    text-align: center;
+    border-radius: 2px;
+    padding: 2px;
+    margin-left: 20px;
+}
+
+.response-text {
+    color:#f1f5fd;
+    margin-top: 10px;
+}
+
+.top-margin {
+    margin-top: 10px;
+}
+
+.top-margin-20 {
+    margin-top: 20px;
+}

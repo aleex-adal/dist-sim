@@ -29,31 +29,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 	useEffect(() => {
 
-		setTimeout(() => {
-			console.log(document.getElementById('6').getBoundingClientRect());
-			const newDiv = document.createElement('div');
-			newDiv.setAttribute('class', 'indicator');
-			newDiv.setAttribute('id', 'indicator');
-			document.getElementById('sim-wrapper').appendChild(newDiv);
-
-			const x1 = document.getElementById('6').getBoundingClientRect().left + window.pageXOffset + 'px';
-			const y1 = document.getElementById('6').getBoundingClientRect().top + window.pageYOffset + 'px';
-
-			const x2 = document.getElementById('1').getBoundingClientRect().left + window.pageXOffset + 'px';
-			const y2 = document.getElementById('1').getBoundingClientRect().top + window.pageYOffset + 'px';
-
-			document.getElementById('indicator').style.left = x1;
-			document.getElementById('indicator').style.top = y1;
-
-			(document.styleSheets[0] as any).insertRule(
-				`@keyframes indicator-animation { from{ left:${x1}; top:${y1}   } to{ left:${x2}; top:${y2} } }`
-			);
-
-			document.getElementById('indicator').style.animation = 'indicator-animation 2s linear forwards';
-
-		}, 3000);
-
-		// sizeSimWrapper();
 		// TODO: make this work for resizing too
 		// window.addEventListener('resize', sizeOuterCircle);
 		sizeOuterCircle();
@@ -118,12 +93,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 	}, [instructionBlockToExecute]);
 
-	const sizeSimWrapper = () => {
-		document.getElementById('sim-wrapper-wrapper').style.paddingLeft = 200 + 'px';
-		document.getElementById('sim-wrapper-wrapper').style.paddingRight = 200 + 'px';
-
-	};
-
 	const sizeOuterCircle = () => {
 		var width = document.getElementById("sim-wrapper").offsetWidth;
 		var height = document.getElementById("sim-wrapper").offsetHeight;
@@ -176,44 +145,21 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 		}
 
 		const edges = [];
-		const subtractByTop = document.getElementById('0').getBoundingClientRect().top;
-		const subtractByLeft = (document.getElementById('0').getBoundingClientRect().left) - 229; // trial and error baby
-		var width = document.getElementById("sim-wrapper").offsetWidth;
-		var height = document.getElementById("sim-wrapper").offsetHeight;
-
-		let newSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-		newSvg.setAttribute('width',  document.getElementById('circle-wrapper').offsetWidth.toString());
-		newSvg.setAttribute('height', document.getElementById('circle-wrapper').offsetWidth.toString());
-		newSvg.setAttribute('id', 'new-svg');
-
+		
 		props.net.nodeMap.forEach(node => {
 			node.connections.forEach( connection => {
 				if (edges.findIndex(
 					elem => (elem[0] === node.id && elem[1] === connection) || (elem[1] === node.id && elem[0] === connection)
 				) < 0) {
+
 					// add the edge to edges, create new line on the svg
-					edges.push([node.id, connection]);
+					const newLine = connect(document.getElementById(node.id.toString()), document.getElementById(connection.toString()));
+					document.getElementById('sim-wrapper').insertBefore(newLine, document.getElementById('circle-wrapper'));
 
-					let x1 = document.getElementById(node.id.toString()).getBoundingClientRect().left + window.pageXOffset;
-					let y1 = document.getElementById(node.id.toString()).getBoundingClientRect().top + window.pageYOffset;
-
-					let x2 = document.getElementById(connection.toString()).getBoundingClientRect().left + window.pageXOffset;
-					let y2 = document.getElementById(connection.toString()).getBoundingClientRect().top + window.pageYOffset;
-
-					const newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
-					newLine.setAttribute('x1', x1.toString());
-					newLine.setAttribute('y1', y1.toString());
-					newLine.setAttribute('x2', x2.toString());
-					newLine.setAttribute('y2', y2.toString());
-					newLine.setAttribute('stroke', '#282c34');
-					newLine.setAttribute('stroke-width', '2px');
-
-					newSvg.append(newLine);
 				}
 			});
 		});
 		
-		// document.getElementById('sim-wrapper').insertBefore(newSvg, document.getElementById('circle-wrapper'));
 	};
 
 	const insertAnimations = (numNodes: number) => {
@@ -354,7 +300,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			const msgId = `instr_${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}_apiresindex_${i}`;
 			msg.setAttribute('class', `msg msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
 			msg.setAttribute('id', msgId);
-			// document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
 			document.getElementById('sim-wrapper').appendChild(msg);
 			const div = document.getElementById(msgId);
 			div.style.height = document.getElementById('0').offsetHeight + 'px';
@@ -398,14 +343,57 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 	}
 
 
+	function getOffset( el ) {
+		var rect = el.getBoundingClientRect();
+		return {
+			left: rect.left + window.pageXOffset,
+			top: rect.top + window.pageYOffset,
+			width: rect.width || el.offsetWidth,
+			height: rect.height || el.offsetHeight
+		};
+	}
+	
+	function connect(div1: HTMLElement, div2: HTMLElement): HTMLElement { // draw a line connecting elements
+		const thickness = 2;
+
+		var off1 = getOffset(div1);
+		var off2 = getOffset(div2);
+		// middle
+		var x1 = off1.left + (off1.width / 2);
+		var y1 = off1.top + (off1.height / 2);
+		// middle
+		var x2 = off2.left + (off2.width / 2);
+		var y2 = off2.top + (off2.height / 2);
+		// distance
+		var length = Math.sqrt(((x2-x1) * (x2-x1)) + ((y2-y1) * (y2-y1)));
+		// center
+		var cx = ((x1 + x2) / 2) - (length / 2);
+		var cy = ((y1 + y2) / 2) - (thickness / 2);
+		// angle
+		var angle = Math.atan2((y1-y2),(x1-x2))*(180/Math.PI);
+		
+		const newLine = document.createElement('div');
+		newLine.style.padding = '0px';
+		newLine.style.margin = '0px';
+		newLine.style.height = '2px';
+		newLine.style.backgroundColor = '#282c34';
+		newLine.style.lineHeight = '1px';
+		newLine.style.position = 'absolute';
+		newLine.style.left = cx + 'px';
+		newLine.style.top = cy + 'px';
+		newLine.style.width = length + 'px';
+		newLine.style.transform = 'rotate(' + angle + 'deg)';
+
+		return newLine as HTMLElement;
+	}
+
+
 	return (
-		// <div id="sim-wrapper-wrapper" className="sim-wrapper-wrapper">
 			<div id="sim-wrapper" className="sim-wrapper">
 				<div id="circle-wrapper" className="circle-wrapper">
 
 				</div>
 			</div>
-		// </div>
 	);
 }
 
