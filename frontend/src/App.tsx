@@ -42,7 +42,7 @@ const App: React.FC = () => {
 
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
     document.getElementById("textarea").style.height = (document.getElementById("console").offsetHeight - 30 - document.getElementById("run").offsetHeight) + 'px';
-    document.getElementById('new-svg').addEventListener('click',
+    document.getElementById('circle-wrapper').addEventListener('click',
       (ev) => {
         setNodeInfoClasses(['node-info']);
 

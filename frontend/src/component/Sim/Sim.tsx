@@ -3,6 +3,11 @@ import './Sim.css';
 import Network from '../../model/Network';
 import { Instruction, buildNodeInfoString } from '../../util/interpret';
 
+
+// need absolute positioning outside of relative positioning
+// <connection divs>
+// <insert message divs>
+// <node divs>
 interface SimProps {
 	net: Network;
 	getNodeInfo: (id: number) => void;
@@ -189,13 +194,11 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 					// add the edge to edges, create new line on the svg
 					edges.push([node.id, connection]);
 
-					let x1 = document.getElementById(node.id.toString()).getBoundingClientRect().left;
-					let y1 = document.getElementById(node.id.toString()).getBoundingClientRect().top - subtractByTop;
+					let x1 = document.getElementById(node.id.toString()).getBoundingClientRect().left + window.pageXOffset;
+					let y1 = document.getElementById(node.id.toString()).getBoundingClientRect().top + window.pageYOffset;
 
-					let x2 = document.getElementById(connection.toString()).getBoundingClientRect().left;
-					let y2 = document.getElementById(connection.toString()).getBoundingClientRect().top - subtractByTop;;
-
-					if ( height < width) { x1 -= subtractByLeft; x2 -= subtractByLeft; y1 += 2; y2 += 2 }
+					let x2 = document.getElementById(connection.toString()).getBoundingClientRect().left + window.pageXOffset;
+					let y2 = document.getElementById(connection.toString()).getBoundingClientRect().top + window.pageYOffset;
 
 					const newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
 					newLine.setAttribute('x1', x1.toString());
@@ -210,7 +213,7 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			});
 		});
 		
-		document.getElementById('circle-wrapper').insertBefore(newSvg, document.getElementById('0'));
+		// document.getElementById('sim-wrapper').insertBefore(newSvg, document.getElementById('circle-wrapper'));
 	};
 
 	const insertAnimations = (numNodes: number) => {
@@ -226,28 +229,21 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 				}
 
 				let x1, x2, y1, y2;
-				if ( height >= width) {
-					x1 = document.getElementById(i.toString()).getBoundingClientRect().left - (msgWidth/2);
-					y1 = document.getElementById(i.toString()).getBoundingClientRect().top - subtractBy - (msgWidth/2);
-	
-					x2 = document.getElementById(j.toString()).getBoundingClientRect().left - (msgWidth/2);
-					y2 = document.getElementById(j.toString()).getBoundingClientRect().top - subtractBy - (msgWidth/2);
-				} else {
-					/// this doesnt work lol
-					x1 = document.getElementById(i.toString()).getBoundingClientRect().left
-					y1 = document.getElementById(i.toString()).getBoundingClientRect().top
-	
-					x2 = document.getElementById(j.toString()).getBoundingClientRect().left
-					y2 = document.getElementById(j.toString()).getBoundingClientRect().top
-				}
 				
-				// going right or left
-				if (x2 - x1 > 0)      { x1 += Math.round(msgWidth/4); x2 -= Math.round(msgWidth/4); }				
-				else if (x2 - x1 < 0) { x1 -= Math.round(msgWidth/4); x2 += Math.round(msgWidth/4); }
+					x1 = document.getElementById(i.toString()).getBoundingClientRect().left + window.pageXOffset;
+					y1 = document.getElementById(i.toString()).getBoundingClientRect().top + window.pageYOffset;
+	
+					x2 = document.getElementById(j.toString()).getBoundingClientRect().left + window.pageXOffset;
+					y2 = document.getElementById(j.toString()).getBoundingClientRect().top + window.pageYOffset;
+				
+				
+				// // going right or left
+				// if (x2 - x1 > 0)      { x1 += Math.round(msgWidth/4); x2 -= Math.round(msgWidth/4); }				
+				// else if (x2 - x1 < 0) { x1 -= Math.round(msgWidth/4); x2 += Math.round(msgWidth/4); }
 
-				// going down or up
-				if (y2 - y1 > 0)      { y1 += Math.round(msgWidth/4); y2 -= Math.round(msgWidth/4); }
-				else if (y2 - y1 < 0) { y1 -= Math.round(msgWidth/4); y2 += Math.round(msgWidth/4); }
+				// // going down or up
+				// if (y2 - y1 > 0)      { y1 += Math.round(msgWidth/4); y2 -= Math.round(msgWidth/4); }
+				// else if (y2 - y1 < 0) { y1 -= Math.round(msgWidth/4); y2 += Math.round(msgWidth/4); }
 
 
 				(document.styleSheets[0] as any).insertRule(
@@ -358,8 +354,11 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			const msgId = `instr_${thisMsg.instrId}_msg${thisMsg.nodeId}to${nextMsg.nodeId}_apiresindex_${i}`;
 			msg.setAttribute('class', `msg msg${thisMsg.nodeId}to${nextMsg.nodeId}`);
 			msg.setAttribute('id', msgId);
-			document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
-			var div = document.getElementById(msgId);
+			// document.getElementById('circle-wrapper').insertBefore(msg, document.getElementById('0'));
+			document.getElementById('sim-wrapper').appendChild(msg);
+			const div = document.getElementById(msgId);
+			div.style.height = document.getElementById('0').offsetHeight + 'px';
+			div.style.width = document.getElementById('0').offsetWidth + 'px';
 			div.style.lineHeight = div.offsetHeight.toString() + 'px';
 
 			if (pauseFirstAnimations) {
