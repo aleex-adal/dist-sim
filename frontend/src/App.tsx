@@ -42,9 +42,11 @@ const App: React.FC = () => {
 
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
     document.getElementById("textarea").style.height = (document.getElementById("console").offsetHeight - 30 - document.getElementById("run").offsetHeight) + 'px';
-    document.getElementById('circle-wrapper').addEventListener('click',
+    
+    // was previously only on circle wrapper
+    document.addEventListener('click',
       (ev) => {
-        if ((ev.target as Element).id === 'circle-wrapper') {
+        if ((ev.target as Element).id === 'circle-wrapper' || (ev.target as Element).id === 'sim-wrapper') {
           setNodeInfoClasses(['node-info']);
 
           document.getElementById('liveinfo').style.removeProperty('display');
@@ -109,11 +111,11 @@ const App: React.FC = () => {
   const displayInfo = (info: string) => {
     document.getElementById('node-info').innerHTML = info;
     if (document.getElementById('node-info').classList.length === 1) {
+
       setNodeInfoClasses(['node-info node-info-active']);
 
       // remove right after the animation ends (0.3s)
       setTimeout( () => document.getElementById('liveinfo').style.display = 'none', 300);
-      document.getElementById('node-info').style.height = '75vh';
       // scrollToEnd();
     }
   };

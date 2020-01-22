@@ -113,10 +113,34 @@ nav {
 .node-info-active {
   visibility: visible;
   transform: translate3d(0, calc(-0.35 * (100vh - 46px)), 0);
+  height: 75vh;
 }
 
-/* @media only screen and (min-width: 767px) {
-  header {
-  background-color: black;
+@media only screen and (min-width: 767px) {
+  .sim-wrapper {
+    display: inline-block;
+    float: left;
+    width: 50%;
+    height: calc(100vh - 46px);
   }
-} */
+
+  .console {
+    display: inline-block;
+    float: right;
+    width:50%;
+    height: calc(100vh - 46px);
+    overflow: scroll;
+  }
+
+  .node-info {
+    display: inline-block;
+    float: right;
+    width:50%;
+    height: calc(100vh - 46px);
+  }
+
+  .node-info-active {
+    transform: translate3d(0, calc(-100vh + 46px), 0);
+    height: 100vh;
+  }
+}
