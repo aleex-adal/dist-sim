@@ -5,6 +5,7 @@ import menu from './resource/menu.svg';
 import Sim from './component/Sim/Sim';
 import Console from './component/Console/Console';
 import Api from './component/Api/Api';
+import Menu from './component/Menu/Menu';
 
 import { Instruction, buildNodeInfoString, buildPayloadInfoString } from './util/interpret';
 import Network from './model/Network';
@@ -59,7 +60,10 @@ const App: React.FC = () => {
     // when user clicks off of the textarea, scroll up so there isn't awks whitespace at the bottom
     const ta = document.getElementById("textarea");
     ta.addEventListener('click', event => {
-      scrollToEnd();
+
+      if (window.innerWidth <= 767) {
+        scrollToEnd();
+      }
       document.removeEventListener('click', detectClickOffTextArea);
       document.addEventListener('click', detectClickOffTextArea);
     });
@@ -122,6 +126,10 @@ const App: React.FC = () => {
 
   const handleTextAreaInput = (event: ChangeEvent) => {
     const currValue = (document.getElementById('textarea') as any).value;
+
+    if (document.getElementById('tutorial').classList.length === 1) {
+      document.getElementById('tutorial').classList.add('display-none');
+    }
 
     if (runButtonClasses[0] !== 'run run-active' && currValue) {
       setRunButtonClasses(['run run-active']);
@@ -192,17 +200,10 @@ const App: React.FC = () => {
         apiResponse={apiResponse}
         sentInstructions={instructionsToSend}
       />
-      <div id="end"></div>
 
-      <div id='node-info' className={nodeInfoClasses[0]}>
-      </div>
+      <div id='node-info' className={nodeInfoClasses[0]}></div>
 
-      <div className={menuClasses[1]} onClick={() => setMenuClasses(['menu', 'overlay'])}></div>
-      <div className={menuClasses[0]}>
-        <ul>
-          <li>about</li>
-        </ul>
-      </div>
+      <Menu menuClasses={menuClasses} setMenuClasses={setMenuClasses}/>
 
       <Api network={network} setNetwork={setNetwork} sentInstructions={instructionsToSend} setApiResponse={setApiResponse} simFinishedExecuting={finishedExecuting} />
     </div>

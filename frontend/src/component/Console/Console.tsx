@@ -276,6 +276,7 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
 
     return (
+        <>
         <div id="console" className="console">
         <Controls {...props.ControlsProps} setInstrList={setInstrList} setApiResponseCopy={setApiResponseCopy} />
   
@@ -315,6 +316,8 @@ const Console: React.FunctionComponent<ConsoleProps> = (props) => {
 
         </div>
       </div>
+      <div id="end"></div>
+      </>
     );
 }
 

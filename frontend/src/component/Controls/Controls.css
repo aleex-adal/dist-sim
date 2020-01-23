@@ -74,3 +74,15 @@
   .display-block {
     display: block;
   }
+
+  .tutorial {
+    box-sizing: border-box;
+    color: #18cdfa;
+    text-align: center;
+    border: 2px solid #18cdfa;
+    border-radius: 2px;
+    padding: 2px;
+    margin-bottom: 10px;
+
+    transition: 0.3s ease-in-out;
+  }

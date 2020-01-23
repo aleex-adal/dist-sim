@@ -162,12 +162,10 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 		}
 	};
 	
-	const scrollToTop = () => {
-		try {
-			document.getElementById('nav').scrollIntoView({ behavior: "smooth"});
-		} catch (e) { // mobile safari does not support smooth scroll
-			document.getElementById('nav').scrollIntoView();
-		}
+	const tutorial = () => {
+		document.getElementById('tutorial').classList.add('display-none');
+		// click the tutorial thingy
+
 	};
 
 	return (
@@ -176,6 +174,8 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 		{/* <div id="back" className="back" onClick={() => {scrollToTop(); changeRunStatus('back');}}>&lt;=</div> */}
 		<div id="play" className="play display-none" onClick={() => {changeRunStatus('play');}}>play</div>
 		{/* <div id="forward" className="forward" onClick={() => {scrollToTop(); changeRunStatus('forward');}}>=></div> */}
+
+		<div id="tutorial" className="tutorial" onClick={() => tutorial()}>tutorial</div>
 		</>
 	);
 
