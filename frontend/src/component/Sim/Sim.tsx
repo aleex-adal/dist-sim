@@ -3,11 +3,6 @@ import './Sim.css';
 import Network from '../../model/Network';
 import { Instruction, buildNodeInfoString } from '../../util/interpret';
 
-
-// need absolute positioning outside of relative positioning
-// <connection divs>
-// <insert message divs>
-// <node divs>
 interface SimProps {
 	net: Network;
 	getNodeInfo: (id: number) => void;

@@ -50,6 +50,7 @@ nav {
 }
 
 .menu {
+  box-sizing: border-box;
   position: absolute;
   top: 0;
   left: 100vw;
@@ -58,6 +59,7 @@ nav {
   visibility: hidden;
 
   width: 100vw;
+  padding: 15px;
 
   transition: 0.3s ease-in-out;
 }
