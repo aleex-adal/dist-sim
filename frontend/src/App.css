@@ -73,15 +73,15 @@ code {
   }
 
   .node-info {
-    display: inline-block;
+    display: none;
     float: right;
     width:50%;
     height: calc(100vh - 46px);
   }
 
   .node-info-active {
+    display: inline-block;
     transform: translate3d(0, calc(-100vh + 46px), 0);
-    height: 100vh;
   }
 
   header {

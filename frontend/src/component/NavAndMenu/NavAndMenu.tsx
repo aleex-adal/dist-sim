@@ -30,29 +30,83 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
             }}
         >back to menu</span>
 
-        <h1 id="tutorial-contents" className="tutorial-contents-hero">
-            welcome to dist-sim
-        </h1>
+        <div id="tutorial-wrapper" className="tutorial-wrapper">
+            <h1 id="tutorial-contents-hero" className="tutorial-contents-hero">
+                welcome.
+            </h1>
+
+            <p>
+                You might have heard about Lamport clocks, but what the heck are they actually used for?
+            </p>
+            <p>Let's say someone sends two writes one after the other: w1 and w2.</p>
+            <p>w2 happens to complete first due to random network delay.</p>
+            <p>What happens when w1 completes?</p>
+            <p>The database will write w1, and end up with that value until the next write.</p>
+            <p>That wouldn't be correct now would it? w2 was sent second, so the database should end up with w2's value.</p>
+            
+            <p>So the receiving node reads the clock that each message arrives with.</p>
+            <p>If the message contains a clock that is "behind" the most recent clock, the node doesn't do the write.</p>
+            <p><strong>When w1 arrives, it has already been overwritten by the more recent operation w2.</strong></p>
+            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
+
+            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
+            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
+            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
+            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
+            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
+            
+            {/* <p>
+                This is a distributed, sharded, non-replicated database simulation.
+            </p>
+            <p><strong>Distributed - </strong>the data is spread across multiple nodes.</p>
+            <p><strong>Sharded - </strong> Each node contains some data.</p>
+            <p><strong>Non-Replicated - </strong> nodes do not contain copies of data.</p>
+            <p>
+                Any node can request data from any other node.
+            </p> */}
+        </div>
     </>);
 
     const [ menuClasses, setMenuClasses ] = useState(['menu', 'overlay']);
     const [ menuContents, setMenuContents ] = useState( initialContents );
 
-    // if the tutorial is up and menu is activated from app component,
-    // go full-screen instead of normal "active" class
+    const [ originalHeight, setOriginalHeight ] = useState( undefined as number );
+
     useEffect( () => {
         setMenuContents(initialContents);
+        setTimeout( () => setOriginalHeight(document.getElementById('root').offsetHeight), 500);
     }, []);
 
     const openMenu = () => {
 
-        if (document.getElementById('tutorial-contents')) {
+        if (document.getElementById('tutorial-wrapper')) {
             setMenuClasses(['menu menu-full', 'overlay overlay-active']);
 
         } else {
             setMenuClasses(['menu menu-active', 'overlay overlay-active']);
         }
     };
+
+    useEffect( () => {
+
+        // expand the height of the app so scrolling isn't weird af
+        if (menuClasses[0] === 'menu menu-full') {
+
+            document.getElementById('root').style.height = document.getElementById('menu').offsetHeight + 'px';
+            document.getElementById('app').style.height = document.getElementById('menu').offsetHeight + 'px';
+
+        // collapse the app height back to normal
+        } else if (
+                originalHeight &&
+                menuClasses[0] !== 'menu menu-full' &&
+                document.getElementById('root').offsetHeight !== originalHeight
+            ) {
+            
+            document.getElementById('root').style.height = originalHeight + 'px';
+            document.getElementById('app').style.height = originalHeight + 'px';
+
+        }
+    }, [menuClasses]);
 
     return (<>
         <header>

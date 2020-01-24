@@ -49,7 +49,7 @@ const App: React.FC = () => {
           document.getElementById('liveinfo').style.removeProperty('display');
           setTimeout( () => document.getElementById('node-info').style.removeProperty('height'), 300);
           // scrollToTop();
-          document.getElementById('app').style.overflowY = 'hidden';
+          // document.getElementById('app').style.overflowY = 'hidden';
         }
       });
 
