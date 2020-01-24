@@ -1,20 +1,17 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import menu from './resource/menu.svg';
 
 import Sim from './component/Sim/Sim';
 import Console from './component/Console/Console';
 import Api from './component/Api/Api';
-import Menu from './component/Menu/Menu';
+import NavAndMenu from './component/NavAndMenu/NavAndMenu';
 
 import { Instruction, buildNodeInfoString, buildPayloadInfoString } from './util/interpret';
 import Network from './model/Network';
 import { ControlsProps } from './component/Controls/Controls';
-import { number } from 'prop-types';
 
 const App: React.FC = () => {
-  const [menuClasses, setMenuClasses] = useState(['menu', 'overlay']);
-  
+    
   // this needs to be a pointer or the tsx element will just do a primitive string copy and won't receive changes
   const [nodeInfoClasses, setNodeInfoClasses] = useState(['node-info']);
   const [runButtonClasses, setRunButtonClasses] = useState(['run']);
@@ -44,7 +41,6 @@ const App: React.FC = () => {
     document.documentElement.style.setProperty('--prompt-width', document.getElementById("prompt").offsetWidth + 'px');
     document.getElementById("textarea").style.height = (document.getElementById("console").offsetHeight - 30 - document.getElementById("run").offsetHeight) + 'px';
     
-    // was previously only on circle wrapper
     document.addEventListener('click',
       (ev) => {
         if ((ev.target as Element).id === 'circle-wrapper' || (ev.target as Element).id === 'sim-wrapper') {
@@ -124,7 +120,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleTextAreaInput = (event: ChangeEvent) => {
+  const handleTextAreaInput = (ev) => {
     const currValue = (document.getElementById('textarea') as any).value;
 
     if (document.getElementById('tutorial').classList.length === 1) {
@@ -172,14 +168,7 @@ const App: React.FC = () => {
   return (
     <div id="app" className="app">
 
-      <header>
-        <nav id='nav'>
-          <div className="nav-title">
-            dist-sim
-          </div>
-          <img className="menu-btn" src={menu} alt="Menu icon" onClick={() => setMenuClasses(['menu menu-active', 'overlay overlay-active'])}></img>
-        </nav>
-      </header>
+      <NavAndMenu />
 
       <Sim 
         net={network}
@@ -202,8 +191,6 @@ const App: React.FC = () => {
       />
 
       <div id='node-info' className={nodeInfoClasses[0]}></div>
-
-      <Menu menuClasses={menuClasses} setMenuClasses={setMenuClasses}/>
 
       <Api network={network} setNetwork={setNetwork} sentInstructions={instructionsToSend} setApiResponse={setApiResponse} simFinishedExecuting={finishedExecuting} />
     </div>

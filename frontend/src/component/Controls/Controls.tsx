@@ -164,7 +164,9 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 	
 	const tutorial = () => {
 		document.getElementById('tutorial').classList.add('display-none');
-		// click the tutorial thingy
+		document.getElementById('menu-btn').click();
+		setTimeout( () => document.getElementById('tutorial-li').classList.add('tutorial-li-highlight'), 800)
+		setTimeout( () => { document.getElementById('tutorial-li').click() }, 2500);
 
 	};
 
