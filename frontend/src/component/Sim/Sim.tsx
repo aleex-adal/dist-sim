@@ -16,11 +16,23 @@ interface SimProps {
 	// so sim can update shown info for "silent" updates like datarange changes during the sim
 	network: Network;
 	mostRecentNodeInfo: Map<number, string>;
+
+	rerenderSim: boolean;
  }
 
 const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 	const [ instructionBlockToExecute, setInstructionBlockToExecute ] = useState(undefined as number);
+
+	useEffect( () => {
+
+		if (props.rerenderSim) {
+			sizeOuterCircle();
+			generateNodes(props.net.numNodes);
+			insertAnimations(props.net.numNodes);
+		}
+
+	}, [props.rerenderSim]);
 
 	useEffect(() => {
 
@@ -121,6 +133,9 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 	};
 
 	const generateNodes = (num) => {
+		const nodeDiameter = document.getElementById('circle-wrapper').offsetWidth / 7;
+		document.documentElement.style.setProperty('--node-diameter', nodeDiameter + 'px');
+
 		for (let i = 0; i < num; i++) {
 			const newDiv = document.createElement('div');
 			newDiv.setAttribute('class', 'dot');
@@ -131,6 +146,11 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			const deg = (360 / num) * i;
 
 			var radius = (document.getElementById("circle-wrapper").offsetWidth / 2) + 'px';
+
+			// if this is the second render, remove the already existing node
+			if (document.getElementById(i.toString())) {
+				document.getElementById(i.toString()).remove();
+			}
 
 			document.getElementById('circle-wrapper').append(newDiv);
 			document.getElementById(i.toString()).style.transform = "rotate(-90deg) rotate(" + deg + "deg) translate(" + radius + ") rotate(-" + deg + "deg) rotate(90deg)";

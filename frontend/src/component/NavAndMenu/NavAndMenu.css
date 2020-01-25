@@ -100,6 +100,10 @@ nav {
   border-radius: 10px;
 }
 
+.tutorial-wrapper {
+  text-align: center;
+}
+
 .tutorial-contents-hero {
   font-family: 'Inria Serif', serif;
   color: #282c34;
@@ -107,7 +111,89 @@ nav {
   animation: fadein 1s;
 }
 
+.tutorial-second-fade {
+  animation: fadein-second 3s;
+}
+
+.tutorial-third-fade {
+  animation: fadein-third 6s;
+
+}
+
 @keyframes fadein {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+@keyframes fadein-second {
+  0% { opacity: 0; }
+  33%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadein-third {
+  0% { opacity: 0; }
+  66%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.showcase {
+  box-sizing: border-box;
+  position: relative;
+  /* border: 1px solid black; */
+  max-width: 750px;
+  margin: auto;
+  text-align: left;
+}
+
+.msg-showcase {
+  box-sizing: border-box;
+  height: var(--node-diameter);
+  width: var(--node-diameter);
+  line-height: var(--node-diameter);
+  background-color: rgba(24, 205, 250, 0.904);
+  border: 2px solid #282c34;
+  border-radius: 2px;
+  font-weight: bold;
+
+  display: inline-block;
+  text-align: center;
+  margin: 0 10%;
+
+}
+
+.slow-to-end {
+  animation: slow-to-end 10s linear 8s infinite;
+}
+
+.fast-to-end {
+  animation: fast-to-end 10s linear 8s infinite;
+}
+
+@keyframes slow-to-end {
+  25% { transform: translate(100px, 0); }
+  100% { transform: translate(100px, 0); }
+}
+
+@keyframes fast-to-end {
+  25% { transform: translate(500px, 0); }
+  100% { transform: translate(500px, 0); }
+}
+
+.dot-showcase {
+	box-sizing: border-box;
+	height: var(--node-diameter);
+  width: var(--node-diameter);
+
+	text-align: center;
+	line-height: calc(var(--node-diameter) - 2px); /* minus border width, we need to reset this with js for some rsn*/
+	font-family: 'Inconsolata', monospace;
+	font-weight: bold;
+
+	border: 2px solid #282c34;
+	background-color: #ccd0da;
+	border-radius: 50%;
+	display: inline-block;
+
+	float: right;
 }

@@ -33,6 +33,17 @@ const App: React.FC = () => {
   const [ mostRecentNodeInfo ] = useState(new Map<number, string>());
   const [ mostRecentStepCompleted, setMostRecentStepCompleted ] = useState([] as number[]);
 
+  // re render sim if screen is over a certain size and we need to change padding
+  const [ rerenderSim, setRerenderSim ] = useState(false);
+
+  useEffect( () => {
+    if (window.innerWidth > 1195) {
+      document.documentElement.style.setProperty('--sim-wrapper-vertical-padding', '70px');
+      document.documentElement.style.setProperty('--sim-wrapper-horizontal-padding', '70px');
+      setRerenderSim(true);
+    }
+  }, []);
+
   useEffect(() => {
     if (!network) {
       return;
@@ -181,6 +192,7 @@ const App: React.FC = () => {
         setFinishedExecuting={setFinishedExecuting}
         network={network}
         mostRecentNodeInfo={mostRecentNodeInfo}
+        rerenderSim={rerenderSim}
       />
 
       <Console

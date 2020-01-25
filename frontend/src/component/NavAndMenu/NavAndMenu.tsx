@@ -8,52 +8,73 @@ interface MenuProps {
 }
 
 const Menu: React.FunctionComponent<MenuProps> = (props) => {
+    
+    const [ menuClasses, setMenuClasses ] = useState(['menu', 'overlay']);
+    const [ menuContents, setMenuContents ] = useState( 'initial-contents' );
+    const [ msgShowcase, setMsgShowcase ] = useState( <></> );
+
+    const [ originalHeight, setOriginalHeight ] = useState( undefined as number );
+
     const initialContents = (
         <ul id="initial-contents" className='initial-contents'>
             <li id='tutorial-li'
                 onClick={() => {
-                    setMenuContents(tutorialContents);
+                    setMenuContents('tutorial-contents');
                     setMenuClasses(['menu menu-full', 'overlay overlay-active']);
+
+                    if (document.getElementById('tutorial').classList.length < 2) {
+                        document.getElementById('tutorial').classList.add('display-none');
+                    }
                 }}
             >tutorial</li>
             <li>example commands</li>
             <li>about</li>
         </ul>
     );
+
+    const getMsgShowcase = (label: string, bgc: string, classes: string) => {
+        return <div className={'msg-showcase ' + classes} style={{backgroundColor: bgc}}>{label}</div>
+    }
     
     const tutorialContents = ( <>
         <span 
             className='back-to-menu'
             onClick={() => {
-                setMenuContents(initialContents);
+                setMenuContents('initial-contents');
                 setMenuClasses(['menu menu-active', 'overlay overlay-active']);
             }}
         >back to menu</span>
 
         <div id="tutorial-wrapper" className="tutorial-wrapper">
             <h1 id="tutorial-contents-hero" className="tutorial-contents-hero">
-                welcome.
+                Welcome.
             </h1>
-
-            <p>
+            <p id="tutorial-second-fade" className="tutorial-second-fade">
                 You might have heard about Lamport clocks, but what the heck are they actually used for?
             </p>
-            <p>Let's say someone sends two writes one after the other: w1 and w2.</p>
-            <p>w2 happens to complete first due to random network delay.</p>
-            <p>What happens when w1 completes?</p>
-            <p>The database will write w1, and end up with that value until the next write.</p>
-            <p>That wouldn't be correct now would it? w2 was sent second, so the database should end up with w2's value.</p>
-            
-            <p>So the receiving node reads the clock that each message arrives with.</p>
-            <p>If the message contains a clock that is "behind" the most recent clock, the node doesn't do the write.</p>
-            <p><strong>When w1 arrives, it has already been overwritten by the more recent operation w2.</strong></p>
-            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
 
-            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
-            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
-            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
-            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
-            <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
+            <div id="tutorial-third-fade" className="tutorial-third-fade">
+                <p>Let's send two write requests to this node, one after the other: w1 and w2.</p>
+                <div className="showcase">
+                    {getMsgShowcase('w2', 'rgba(24, 205, 250, 0.904)', 'fast-to-end')}
+                    {getMsgShowcase('w1', 'rgba(250, 235, 24, 0.904)', 'slow-to-end')}
+                    <div className="dot-showcase">1</div>
+                </div>
+
+                <p>w2 happens to travel faster and completes first.</p>
+
+                <p>What happens when w1 arrives at the node after w2 already completed?</p>
+                <p>The database will write w1, and end up with w1's value.</p>
+                <p>Seems backwards right? w2 was sent last so the database should end up with w2's value.</p>
+                
+                <p>To solve this problem, each request is sent with a <strong>clock</strong>. It's just a number that counts up for each request sent and received.</p>
+                <p>The clocks tell us that we sent w1 at time 5. We sent w2 at time 6.</p>
+                <p>The node receives w2 first, and it remembers that w2 was sent at time 6.</p>
+                <p>The node then receives w1. w1's clock is "behind" w2's clock so the node doesn't execute w1.</p>
+                <p><strong>When w1 arrives, it has already been overwritten by the more recent operation w2.</strong></p>
+                <p><strong>This is how logical clocks are used in distributed systems.</strong></p>
+            </div>
+            
             
             {/* <p>
                 This is a distributed, sharded, non-replicated database simulation.
@@ -67,14 +88,12 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
         </div>
     </>);
 
-    const [ menuClasses, setMenuClasses ] = useState(['menu', 'overlay']);
-    const [ menuContents, setMenuContents ] = useState( initialContents );
-
-    const [ originalHeight, setOriginalHeight ] = useState( undefined as number );
-
     useEffect( () => {
-        setMenuContents(initialContents);
-        setTimeout( () => setOriginalHeight(document.getElementById('root').offsetHeight), 500);
+        // setMenuContents(initialContents);
+        setTimeout( () => {
+            setOriginalHeight(document.getElementById('root').offsetHeight);
+            setMsgShowcase(<div className='msg-showcase' style={{color: 'red'}}>w1</div>);
+        }, 500);
     }, []);
 
     const openMenu = () => {
@@ -125,7 +144,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
 				<path d="M10.185,1.417c-4.741,0-8.583,3.842-8.583,8.583c0,4.74,3.842,8.582,8.583,8.582S18.768,14.74,18.768,10C18.768,5.259,14.926,1.417,10.185,1.417 M10.185,17.68c-4.235,0-7.679-3.445-7.679-7.68c0-4.235,3.444-7.679,7.679-7.679S17.864,5.765,17.864,10C17.864,14.234,14.42,17.68,10.185,17.68 M10.824,10l2.842-2.844c0.178-0.176,0.178-0.46,0-0.637c-0.177-0.178-0.461-0.178-0.637,0l-2.844,2.841L7.341,6.52c-0.176-0.178-0.46-0.178-0.637,0c-0.178,0.176-0.178,0.461,0,0.637L9.546,10l-2.841,2.844c-0.178,0.176-0.178,0.461,0,0.637c0.178,0.178,0.459,0.178,0.637,0l2.844-2.841l2.844,2.841c0.178,0.178,0.459,0.178,0.637,0c0.178-0.176,0.178-0.461,0-0.637L10.824,10z"></path>
 			</svg>
 
-            {menuContents}
+            {menuContents === 'initial-contents' ? initialContents : tutorialContents}
         </div>
     </>)
 }
