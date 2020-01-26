@@ -102,22 +102,33 @@ nav {
 
 .tutorial-wrapper {
   text-align: center;
+  max-width: 767px;
+  margin: auto;
 }
 
 .tutorial-contents-hero {
   font-family: 'Inria Serif', serif;
   color: #282c34;
   text-align: center;
-  animation: fadein 1s;
+  /* animation: fadein 1s; */
 }
 
 .tutorial-second-fade {
-  animation: fadein-second 3s;
+  /* animation: fadein-second 3s; */
 }
 
 .tutorial-third-fade {
-  animation: fadein-third 6s;
+  /* animation: fadein-third 5s; */
+}
 
+.tutlist li {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.tutlist p {
+  margin: 0;
+  margin-bottom: 5px;
 }
 
 @keyframes fadein {
@@ -133,7 +144,7 @@ nav {
 
 @keyframes fadein-third {
   0% { opacity: 0; }
-  66%   { opacity: 0; }
+  60%   { opacity: 0; }
   100% { opacity: 1; }
 }
 
@@ -144,6 +155,7 @@ nav {
   max-width: 750px;
   margin: auto;
   text-align: left;
+  margin-top: 15px;
 }
 
 .msg-showcase {
@@ -159,19 +171,59 @@ nav {
   display: inline-block;
   text-align: center;
   margin: 0 10%;
-
 }
 
-.slow-to-end {
-  animation: slow-to-end 10s linear 8s infinite;
+.showcase-3 {
+  text-align: right;
 }
+
+.msg-showcase-3 {
+  margin: 0;
+}
+
+.s3n2 {
+  transform: translate(var(--node-diameter), 0);
+}
+
+.s3n1 {
+  transform: translate(calc(var(--node-diameter) * 2), 0);
+}
+
+.half {
+  width: 50%;
+  display: inline-block;
+}
+
+.float-right {
+  float: right;
+}
+
+.tut-clock-label {
+  display: inline-block;
+  margin: auto;
+  margin-top: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: #282c34;
+  font-family: 'Inconsolata', monospace;
+}
+
+.margin-auto {
+  margin: auto;
+}
+
+.display-block {
+  display: block;
+}
+
+
 
 .fast-to-end {
-  animation: fast-to-end 10s linear 8s infinite;
+  animation: fast-to-end 10s linear infinite;
 }
 
 @keyframes slow-to-end {
-  25% { transform: translate(100px, 0); }
+  25% { transform: translate(100px, 0);}
   100% { transform: translate(100px, 0); }
 }
 
