@@ -55,10 +55,7 @@ const App: React.FC = () => {
     document.addEventListener('click',
       (ev) => {
         if ((ev.target as Element).id === 'circle-wrapper' || (ev.target as Element).id === 'sim-wrapper') {
-          setNodeInfoClasses(['node-info']);
-
-          document.getElementById('liveinfo').style.removeProperty('display');
-          setTimeout( () => document.getElementById('node-info').style.removeProperty('height'), 300);
+          closeNodeInfo();
           // scrollToTop();
           // document.getElementById('app').style.overflowY = 'hidden';
         }
@@ -120,7 +117,7 @@ const App: React.FC = () => {
     );
 
   const displayInfo = (info: string) => {
-    document.getElementById('node-info').innerHTML = info;
+    document.getElementById('node-info-wrapper').innerHTML = info;
     if (document.getElementById('node-info').classList.length === 1) {
 
       setNodeInfoClasses(['node-info node-info-active']);
@@ -130,6 +127,13 @@ const App: React.FC = () => {
       // scrollToEnd();
     }
   };
+
+  const closeNodeInfo = () => {
+    setNodeInfoClasses(['node-info']);
+
+    document.getElementById('liveinfo').style.removeProperty('display');
+    setTimeout( () => document.getElementById('node-info').style.removeProperty('height'), 300);
+  }
 
   const handleTextAreaInput = (ev) => {
     const currValue = (document.getElementById('textarea') as any).value;
@@ -202,7 +206,16 @@ const App: React.FC = () => {
         sentInstructions={instructionsToSend}
       />
 
-      <div id='node-info' className={nodeInfoClasses[0]}></div>
+      <div id='node-info' className={nodeInfoClasses[0]}>
+        <svg 
+          onClick={() => closeNodeInfo()}
+          id="node-info-close" className="node-info-close" viewBox="0 0 20 20"
+          style={{left: (window.innerWidth > 766 ? (window.innerWidth/2) - 45 : window.innerWidth - 45) + 'px'}}
+          >
+          <path fill="#f1f5fd" d="M10.185,1.417c-4.741,0-8.583,3.842-8.583,8.583c0,4.74,3.842,8.582,8.583,8.582S18.768,14.74,18.768,10C18.768,5.259,14.926,1.417,10.185,1.417 M10.185,17.68c-4.235,0-7.679-3.445-7.679-7.68c0-4.235,3.444-7.679,7.679-7.679S17.864,5.765,17.864,10C17.864,14.234,14.42,17.68,10.185,17.68 M10.824,10l2.842-2.844c0.178-0.176,0.178-0.46,0-0.637c-0.177-0.178-0.461-0.178-0.637,0l-2.844,2.841L7.341,6.52c-0.176-0.178-0.46-0.178-0.637,0c-0.178,0.176-0.178,0.461,0,0.637L9.546,10l-2.841,2.844c-0.178,0.176-0.178,0.461,0,0.637c0.178,0.178,0.459,0.178,0.637,0l2.844-2.841l2.844,2.841c0.178,0.178,0.459,0.178,0.637,0c0.178-0.176,0.178-0.461,0-0.637L10.824,10z"></path>
+        </svg>
+        <div id='node-info-wrapper'></div>
+      </div>
 
       <Api network={network} setNetwork={setNetwork} sentInstructions={instructionsToSend} setApiResponse={setApiResponse} simFinishedExecuting={finishedExecuting} />
     </div>
