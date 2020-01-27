@@ -102,12 +102,6 @@ nav {
   border-bottom: 2px solid #282c34;
 }
 
-.tutorial-li-highlight {
-  color: red;
-  animation: blink 0.8s step-start 0s infinite;
-  -webkit-animation: blink 0.8s step-start 0s infinite;
-}
-
 .back-to-menu {
   height: 50px;
   line-height: 50px;
@@ -210,8 +204,12 @@ nav {
 }
 
 .half {
-  width: 50%;
+  min-width: 50%;
   display: inline-block;
+}
+
+.ex-half {
+  width: 50%;
 }
 
 .float-right {
@@ -268,5 +266,6 @@ nav {
   margin: 10px;
   padding: 10px;
   background-color: #282c34;
+  color: #f1f5fd;
   font-family: 'Inconsolata', monospace;
 }

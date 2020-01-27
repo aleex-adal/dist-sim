@@ -169,6 +169,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             })}
                             <div className="tut-clock-label">
                                 <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                                <br></br>
                                 <span style={{color: "#18cdfa"}}>[</span>
                                 <span style={{color: '#f1f5fd'}}> 5 </span>
                                 <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
@@ -184,6 +185,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             })}
                             <div className="tut-clock-label">
                                 <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                                <br></br>
                                 <span style={{color: "#18cdfa"}}>[</span>
                                 <span style={{color: '#f1f5fd'}}> 6 </span>
                                 <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
@@ -197,6 +199,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                         <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block'}}>w2</div>
                         <div className="tut-clock-label">
                             <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                            <br></br>
                             <span style={{color: "#18cdfa"}}>[</span>
                             <span style={{color: '#f1f5fd'}}> 6 </span>
                             <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
@@ -216,6 +219,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             })}
                             <div className="tut-clock-label">
                                 <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                                <br></br>
                                 <span style={{color: "#18cdfa"}}>[</span>
                                 <span style={{color: '#f1f5fd'}}> 5 </span>
                                 <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
@@ -225,6 +229,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block'}}>w2</div>
                             <div className="tut-clock-label">
                                 <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                                <br></br>
                                 <span style={{color: "#18cdfa"}}>[</span>
                                 <span style={{color: '#f1f5fd'}}> 6 </span>
                                 <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
@@ -275,10 +280,202 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
             <h1 id="example-contents-hero" className="contents-hero">
                 Example Commands
             </h1>
-            <ul id="example-list" className="instrlist menulist">
-                <li className="first">normal vs in-order etc</li>
-                <li></li>
-                <li className="last"></li>
+            <ul id="example-list" className="instrlist menulist extra-p-margin">
+                <li className="first">
+                    <p>All commands can be abbreviated.</p>
+                    <p>Read</p>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>node 0 read item 15</span>
+                            </div> 
+                        </div>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>n 0 r 15</span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <p>Insert</p>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>{'node 0 insert item {"anyField":"anyString", "anyNumber":10 }'}</span>
+                            </div> 
+                        </div>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>{'n 0 i {"anyField":"anyString", "anyNumber":10 }'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <p>Update</p>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>{'node 0 update item 15 {"anyField":"anyString", "anyNumber":10 }'}</span>
+                            </div> 
+                        </div>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>{'n 0 u 15 {"anyField":"anyString", "anyNumber":10 }'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <p>Delete</p>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>{'node 0 delete item 15'}</span>
+                            </div> 
+                        </div>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>{'n 0 d 15'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <p>
+                        Execute multiple commands by entering them on different lines in the console.
+                    </p>
+                    <p>
+                        <strong>Normal</strong>, the default, sends at the same time.
+                    </p>
+                    <p>
+                        <strong>In-order</strong> guarantees that the first command finishes before the second.
+                    </p>
+                    <p>
+                        <strong>Delay</strong> delays the command by a number of seconds.
+                    </p>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>{'node 0 update item 15 {"secondEdit":false} delay 5'}</span>
+                            </div> 
+                        </div>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <span>{'node 0 update item 15 {"secondEdit":true}'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <div>{'in-order'}</div>
+                                <div>{'node 0 read item 15 delay 5'}</div>
+                                <div>{'node 0 read item 15'}</div>
+                            </div> 
+                        </div>
+                        <div className="half">
+                            <div className="ex-clock-label">
+                                <div>{'normal'}</div>
+                                <div>{'node 0 read item 15'}</div>
+                                <div>{'node 0 update item 15 {"secondEdit":true}'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <h3 style={{margin: '0'}}>Workflow</h3>
+                    <p>
+                        {window.innerWidth > 1195 ? 'Click ' : 'Tap '}
+                        each node to display its data.
+                    </p>
+                    <p>
+                        Note the nodeId that will send the request, and the itemId that will be read or modified.
+                    </p>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half ex-half">
+                            <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block'}}>0</div>
+                            <div className="ex-clock-label">
+                                <span style={{color: "#f1ef43"}}>node 0 info</span>
+                            </div> 
+                        </div>
+                        <div className="half ex-half">
+                            <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block', backgroundColor: 'rgba(24, 205, 250, 0.904)'}}>5</div>
+                            <div className="ex-clock-label">
+                                <span style={{color: '#f1ef43'}}>dataSlice: </span>
+                                <span style={{color: '#18cdfa'}}>[</span>
+                                <span style={{color: '#f0d976'}}>{'{'}</span>
+                                itemId: 15, ...
+                                <span style={{color: '#f0d976'}}>{'}'}</span>
+                                <span style={{color: '#18cdfa'}}>]</span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <p>
+                        Type your command in the console.
+                    </p>
+                    <p>
+                        Try {window.innerWidth > 1195 ? ' clicking ' : ' tapping '}
+                        the node that will send the command. Notice how its clock changes during the command.
+                    </p>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half ex-half">
+                            <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block'}}>0</div>
+                            <div className="ex-clock-label">
+                                <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                                <br></br>
+                                <span style={{color: "#18cdfa"}}>[</span>
+                                <span style={{color: '#f1f5fd'}}> 5 </span>
+                                <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
+                            </div>
+                        </div>
+                        <div className="half ex-half">
+                            <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block'}}>0</div>
+                            <div className="ex-clock-label">
+                                <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                                <br></br>
+                                <span style={{color: "#18cdfa"}}>[</span>
+                                <span style={{color: '#f1f5fd'}}> 6 </span>
+                                <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li className="last">
+                    <p>
+                        Hit the run button, and {window.innerWidth > 1195 ? ' click ' : ' tap '}
+                        the blue message that pops up to see its contents. Then hit the play button.
+                    </p>
+                    <p>
+                        Pause the sim before and after the message hits the target node that contains data to be read or modified.
+                         How does the the target node's clock change?
+                    </p>
+                    <div className="showcase" style={{textAlign: 'center'}}>
+                        <div className="half ex-half">
+                            <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block', backgroundColor: 'rgba(24, 205, 250, 0.904)'}}>5</div>
+                            <div className="ex-clock-label">
+                                <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                                <br></br>
+                                <span style={{color: "#18cdfa"}}>[</span>
+                                <span style={{color: '#f1f5fd'}}> 0 </span>
+                                <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
+                            </div>
+                        </div>
+                        <div className="half ex-half">
+                            <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block', backgroundColor: 'rgba(24, 205, 250, 0.904)'}}>5</div>
+                            <div className="ex-clock-label">
+                                <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
+                                <br></br>
+                                <span style={{color: "#18cdfa"}}>[</span>
+                                <span style={{color: '#f1f5fd'}}> 2 </span>
+                                <span style={{color: "#18cdfa", marginRight: "10px"}}>]</span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
             </ul>
         </div>
     </>);
