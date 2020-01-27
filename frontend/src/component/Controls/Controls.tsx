@@ -177,7 +177,7 @@ const Controls: React.FunctionComponent<ControlsProps> = (props) => {
 		<div id="play" className="play display-none" onClick={() => {changeRunStatus('play');}}>play</div>
 		{/* <div id="forward" className="forward" onClick={() => {scrollToTop(); changeRunStatus('forward');}}>=></div> */}
 
-		<div id="tutorial" className="tutorial" onClick={() => tutorial()}>tutorial</div>
+		<div id="tutorial" className="tutorial" onClick={() => tutorial()}>first visit?</div>
 		</>
 	);
 

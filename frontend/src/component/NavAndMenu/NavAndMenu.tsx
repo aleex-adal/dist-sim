@@ -6,7 +6,7 @@ import menu from '../../resource/menu.svg';
 interface MenuProps {
     
 }
-// first time? click here
+// 
 // tut => introduction
 // walkthrough (enter command, tap node for clock, tap payload)
 // example commands
@@ -14,8 +14,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
     
     const [ menuClasses, setMenuClasses ] = useState(['menu', 'overlay']);
     const [ menuContents, setMenuContents ] = useState( 'initial-contents' );
-
-    const [ originalHeight, setOriginalHeight ] = useState( undefined as number );
 
     const initialContents = (
         <ul id="initial-contents" className='initial-contents'>
@@ -28,9 +26,15 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                         document.getElementById('tutorial').classList.add('display-none');
                     }
                 }}
-            >tutorial</li>
-            <li>example commands</li>
-            <li>about</li>
+            ><h2>welcome</h2></li>
+            <li onClick={() => {
+                setMenuContents('example-contents');
+                setMenuClasses(['menu menu-full', 'overlay overlay-active']);
+            }}><h2>example commands</h2></li>
+            <li onClick={() => {
+                setMenuContents('about-contents');
+                setMenuClasses(['menu menu-full', 'overlay overlay-active']);
+            }}><h2>motivation</h2></li>
         </ul>
     );
 
@@ -50,23 +54,23 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
         </div>  
     };
 
-    const backToMenuBtn = () => {
-        return (
-            <span 
-                className='back-to-menu'
-                onClick={() => {
-                    setMenuContents('initial-contents');
-                    setMenuClasses(['menu menu-active', 'overlay overlay-active']);
-                }}
-            >back to menu</span>
-        )
-    };
+    const backToMenuBtn = (
+        <span 
+            className='back-to-menu'
+            onClick={() => {
+                setMenuContents('initial-contents');
+                setMenuClasses(['menu menu-active', 'overlay overlay-active']);
+                document.getElementById('root').style.removeProperty('height');
+                document.getElementById('app').style.removeProperty('height');
+            }}
+        >back to menu</span>
+    );
     
     const tutorialContents = ( <>
-        {backToMenuBtn()}
+        {backToMenuBtn}
 
-        <div id="tutorial-wrapper" className="tutorial-wrapper">
-            <h1 id="tutorial-contents-hero" className="tutorial-contents-hero">
+        <div id="tutorial-wrapper" className="menu-content-wrapper">
+            <h1 id="tutorial-contents-hero" className="contents-hero tutorial-first-fade">
                 Welcome.
             </h1>
             <p id="tutorial-second-fade" className="tutorial-second-fade">
@@ -75,14 +79,14 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
 
             {window.innerWidth > 1195 ? 
                 <p className="tutorial-second-fade">
-                    This app was designed for mobile first. 
+                    *This app was designed on mobile first. 
                     Feel free to visit on your phone as well - 
-                    the tutorial is especially suited for vertical scrolling :)
+                    this page is especially suited for vertical scrolling :)
                 </p>
                 :
                 ''}
 
-            <ul id="tutorial-third-fade" className="instrlist tutlist tutorial-third-fade">
+            <ul id="tutorial-third-fade" className="instrlist menulist tutorial-third-fade">
                 <li className="first">
                     <p>Node 1 is a node in our database.</p>
                     <div className="showcase" style={{textAlign: 'center'}}>
@@ -148,7 +152,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                         <div id="s3n2" className="dot-showcase s3n2" style={{backgroundColor: 'rgba(24, 205, 250, 0.904)', animation: 's3n2 10s linear 18s infinite'}}>w2</div>
                         <div id="s3n1" className="dot-showcase s3n1" style={{animation: 's3n1 10s linear 18s infinite'}}>1</div>
                     </div>
-                    <p style={{marginTop: '15px'}}>Seems backwards right? w2 was sent last so the database should end up with w2's value.</p>
+                    <p style={{marginTop: '15px'}}>Seems backwards right? w2 was sent most recently so the database should end up with w2's value.</p>
                 </li>
                 <li>
                     <p>To solve this problem, each request is sent with a <strong>clock</strong>. It's just a number that counts up for each request sent and received.</p>
@@ -190,7 +194,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                 <li>
                     <p>The node receives w2 first, and it remembers that w2 was sent at time 6.</p>
                     <div className="showcase" style={{textAlign: 'center'}}>
-                        <div className="dot-showcase" style={{float: 'none', backgroundColor: 'rgba(24, 205, 250, 0.904)', margin: 'auto', display: 'block'}}>w2</div>
+                        <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block'}}>w2</div>
                         <div className="tut-clock-label">
                             <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
                             <span style={{color: "#18cdfa"}}>[</span>
@@ -218,7 +222,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             </div> 
                         </div>
                         <div className="half float-right">
-                            <div className="dot-showcase" style={{float: 'none', backgroundColor: 'rgba(24, 205, 250, 0.904)', margin: 'auto', display: 'block'}}>w2</div>
+                            <div className="dot-showcase" style={{float: 'none', margin: 'auto', display: 'block'}}>w2</div>
                             <div className="tut-clock-label">
                                 <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
                                 <span style={{color: "#18cdfa"}}>[</span>
@@ -242,29 +246,88 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                         </span>
                     </div>
                     <p style={{marginTop: '15px'}}>To learn what else you can do with this database simulation, 
-                        <span className="open-examples" onClick={() => openExamples()}>{window.innerWidth > 1195 ? 'tap here.' : 'click here.'}</span>
+                        <span className="open-examples" onClick={() => {
+                            document.getElementById('root').style.removeProperty('height');
+                            document.getElementById('app').style.removeProperty('height');
+                            setMenuContents('example-contents');
+                            try {
+                                document.getElementById('menu-close').scrollIntoView({ behavior: "smooth"});
+                            } catch (e) { // mobile safari does not support smooth scroll
+                                document.getElementById('menu-close').scrollIntoView();
+                            };
+
+                            // give the new menu contents some time to expand to new height then set app height to new height
+                            setTimeout( () => {
+                                document.getElementById('root').style.height = document.getElementById('menu').offsetHeight + 'px';
+                                document.getElementById('app').style.height = document.getElementById('menu').offsetHeight + 'px';
+                            }, 500);
+                                                          
+                        }}>{window.innerWidth > 1195 ? ' click here.' : ' tap here.'}</span>
                     </p>
                 </li>
             </ul>
-            
-            
-            {/* <p>
-                This is a distributed, sharded, non-replicated database simulation.
-            </p>
-            <p><strong>Distributed - </strong>the data is spread across multiple nodes.</p>
-            <p><strong>Sharded - </strong> Each node contains some data.</p>
-            <p><strong>Non-Replicated - </strong> nodes do not contain copies of data.</p>
-            <p>
-                Any node can request data from any other node.
-            </p> */}
         </div>
     </>);
 
-    useEffect( () => {
-        setTimeout( () => {
-            setOriginalHeight(document.getElementById('root').offsetHeight);
-        }, 500);
-    }, []);
+    const exampleContents = (<>
+        {backToMenuBtn}
+        <div id="example-wrapper" className="menu-content-wrapper">
+            <h1 id="example-contents-hero" className="contents-hero">
+                Example Commands
+            </h1>
+            <ul id="example-list" className="instrlist menulist">
+                <li className="first">normal vs in-order etc</li>
+                <li></li>
+                <li className="last"></li>
+            </ul>
+        </div>
+    </>);
+
+    const aboutContents = (<>
+        {backToMenuBtn}
+        <div id="about-wrapper" className="menu-content-wrapper">
+            <h1 id="about-contents-hero" className="contents-hero">
+                Motivation
+            </h1>
+            <ul id="about-list" className="instrlist menulist extra-p-margin">
+                <li className="first" style={{paddingTop: '0'}}>
+                    <h3 style={{margin: '0'}}>Hello, I'm Aleexsan Adal.</h3>
+                    <p>
+                        I heard about Lamport clocks from this episode of <span>
+                            <a target="_blank" href="https://softwareengineeringdaily.com/2019/09/18/distributed-databases-with-aly-cabral/">
+                                Software Engineering Daily,
+                            </a>
+                        </span> and did some googling on the concept.
+                    </p>
+                    <p> 
+                        Most articles explained what the algorithm is (just increment for messages sent and received), 
+                        but none had a clear explanation of <strong>why a distributed system needs to track logical time.</strong>
+                    </p>
+                </li>
+                <li>
+                    <p>
+                        <strong>The system needs clocks to re-order operations that arrive out of order. </strong>
+                        You could send write 1 and then write 2, but they may arrive in the reverse order due to network delay.
+                    </p>
+                    <p>
+                        The clocks will show which op was sent first, so the database nodes must compare the arriving clock with the most recent write's clock
+                        to determine what to do.
+                    </p>
+                    <p>This is the example explained in the welcome section.</p>
+                </li>
+                <li>
+                    <p>
+                        I'm still bewildered that this example or similar ones aren't included in every explanation of logical clocks.
+                    </p>
+                </li>
+                <li className="last">
+                    <p>    
+                        --- From a visual learner, supporting other visual learners. Those engineering textbooks sure aren't.
+                    </p>
+                </li>
+            </ul>
+        </div>
+    </>);
 
     const openMenu = () => {
 
@@ -276,10 +339,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
         }
     };
 
-    const openExamples = () => {
-        setMenuContents('example-contents');
-    };
-
     useEffect( () => {
 
         // expand the height of the app so scrolling isn't weird af
@@ -289,10 +348,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
             document.getElementById('app').style.height = document.getElementById('menu').offsetHeight + 'px';
 
         // collapse the app height back to normal
-        } else if (
-                originalHeight &&
-                menuClasses[0] !== 'menu menu-full'
-            ) {
+        } else if (menuClasses[0] === 'menu') {
             if (menuContents !== 'initial-contents') {
                 setMenuContents('initial-contents');
             }
@@ -376,6 +432,18 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
 
     }, [menuContents]);
 
+    const returnContents = (label: string) => {
+        if (label === 'tutorial-contents') {
+            return tutorialContents;
+        } else if (label === 'example-contents') {
+            return exampleContents;
+        } else if (label === 'about-contents') {
+            return aboutContents;
+        } else {
+            return initialContents;
+        }
+    }
+
     return (<>
         <header>
             <nav id='nav'>
@@ -393,7 +461,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
 				<path d="M10.185,1.417c-4.741,0-8.583,3.842-8.583,8.583c0,4.74,3.842,8.582,8.583,8.582S18.768,14.74,18.768,10C18.768,5.259,14.926,1.417,10.185,1.417 M10.185,17.68c-4.235,0-7.679-3.445-7.679-7.68c0-4.235,3.444-7.679,7.679-7.679S17.864,5.765,17.864,10C17.864,14.234,14.42,17.68,10.185,17.68 M10.824,10l2.842-2.844c0.178-0.176,0.178-0.46,0-0.637c-0.177-0.178-0.461-0.178-0.637,0l-2.844,2.841L7.341,6.52c-0.176-0.178-0.46-0.178-0.637,0c-0.178,0.176-0.178,0.461,0,0.637L9.546,10l-2.841,2.844c-0.178,0.176-0.178,0.461,0,0.637c0.178,0.178,0.459,0.178,0.637,0l2.844-2.841l2.844,2.841c0.178,0.178,0.459,0.178,0.637,0c0.178-0.176,0.178-0.461,0-0.637L10.824,10z"></path>
 			</svg>
 
-            {menuContents === 'initial-contents' ? initialContents : tutorialContents}
+            {returnContents(menuContents)}
         </div>
     </>)
 }

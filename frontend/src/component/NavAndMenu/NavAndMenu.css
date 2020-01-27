@@ -85,6 +85,23 @@ nav {
   stroke-width: 1;
 }
 
+.initial-contents {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  width: calc(60vw - 30px);
+}
+
+.initial-contents li {
+  font-family: 'Inria Serif', serif;
+}
+
+.initial-contents li h2 {
+  margin: 20px;
+  font-weight: normal;
+  border-bottom: 2px solid #282c34;
+}
+
 .tutorial-li-highlight {
   color: red;
   animation: blink 0.8s step-start 0s infinite;
@@ -100,33 +117,36 @@ nav {
   border-radius: 10px;
 }
 
-.tutorial-wrapper {
+.menu-content-wrapper {
   text-align: center;
   max-width: 767px;
   margin: auto;
 }
 
-.tutorial-contents-hero {
+.contents-hero {
   font-family: 'Inria Serif', serif;
   color: #282c34;
   text-align: center;
-  /* animation: fadein 1s; */
+}
+
+.tutorial-first-fade {
+  animation: fadein 1s;
 }
 
 .tutorial-second-fade {
-  /* animation: fadein-second 3s; */
+  animation: fadein-second 3s;
 }
 
 .tutorial-third-fade {
-  /* animation: fadein-third 5s; */
+  animation: fadein-third 5s;
 }
 
-.tutlist li {
+.menulist li {
   padding-top: 20px;
   padding-bottom: 20px;
 }
 
-.tutlist p {
+.menulist p {
   margin: 0;
   margin-bottom: 5px;
 }
@@ -216,20 +236,8 @@ nav {
   display: block;
 }
 
-
-
-.fast-to-end {
-  animation: fast-to-end 10s linear infinite;
-}
-
-@keyframes slow-to-end {
-  25% { transform: translate(100px, 0);}
-  100% { transform: translate(100px, 0); }
-}
-
-@keyframes fast-to-end {
-  25% { transform: translate(500px, 0); }
-  100% { transform: translate(500px, 0); }
+.open-examples {
+  font-weight: bold;
 }
 
 .dot-showcase {
@@ -248,4 +256,17 @@ nav {
 	display: inline-block;
 
 	float: right;
+}
+
+.extra-p-margin li p {
+  margin: 15px 0;
+}
+
+.ex-clock-label {
+  display: inline-block;
+  margin: auto;
+  margin: 10px;
+  padding: 10px;
+  background-color: #282c34;
+  font-family: 'Inconsolata', monospace;
 }
