@@ -6,10 +6,7 @@ import menu from '../../resource/menu.svg';
 interface MenuProps {
     
 }
-// 
-// tut => introduction
-// walkthrough (enter command, tap node for clock, tap payload)
-// example commands
+
 const Menu: React.FunctionComponent<MenuProps> = (props) => {
     
     const [ menuClasses, setMenuClasses ] = useState(['menu', 'overlay']);
@@ -43,12 +40,13 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
         label: string,
         bgc: string,
         animation: string,
+        webkitAnimation: string,
         classes?: string
     }) => {
         return <div 
             id        ={o.id}
             className ={o.classes ? 'msg-showcase ' + o.classes : 'msg-showcase'}
-            style     ={{backgroundColor: o.bgc, animation: o.animation}}
+            style     ={{backgroundColor: o.bgc, animation: o.animation, WebkitAnimation: o.webkitAnimation, }}
         >
             {o.label}
         </div>  
@@ -101,13 +99,15 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             id: 's1w2',
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
-                            animation: 's1 10s linear 8s infinite'
+                            animation: 's1 10s linear 8s infinite',
+                            webkitAnimation: 'wk-s1 10s linear 8s infinite',
                         })}
                         {getMsgShowcase({
                             id: 's1w1',
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
-                            animation: 's1 10s linear 8s infinite'
+                            animation: 's1 10s linear 8s infinite',
+                            webkitAnimation: 'wk-s1 10s linear 8s infinite',
                         })}
                         <div id="s1n1" className="dot-showcase">1</div>
                     </div>
@@ -119,13 +119,15 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             id: 's2w2',
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
-                            animation: 's2w2 10s linear 14s infinite'
+                            animation: 's2w2 10s linear 14s infinite',
+                            webkitAnimation: 'wk-s2w2 10s linear 14s infinite',
                         })}
                         {getMsgShowcase({
                             id: 's2w1',
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
-                            animation: 's2w1 10s linear 14s infinite'
+                            animation: 's2w1 10s linear 14s infinite',
+                            webkitAnimation: 'wk-s2w1 10s linear 14s infinite',
                         })}
                         <div id="s2n1" className="dot-showcase">1</div>
                     </div>
@@ -139,6 +141,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
                             animation: 's3w1 10s linear 18s infinite',
+                            webkitAnimation: 'wk-s3w1 10s linear 18s infinite',
                             classes: 'msg-showcase-3 s3n1',
                         })}
                         {getMsgShowcase({
@@ -146,6 +149,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
                             animation: 's3w2 10s linear 18s infinite',
+                            webkitAnimation: 'wk-s3w2 10s linear 18s infinite',
                             classes: 'msg-showcase-3 s3n1',
                         })}
                         <div id="s3n3" className="dot-showcase" style={{backgroundColor: 'rgba(250, 24, 24, 0.904)', color: '#fff'}}>w1</div>
@@ -165,7 +169,8 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 label: 'w1',
                                 bgc: 'rgba(250, 235, 24, 0.904)',
                                 animation: '',
-                                classes: 'margin-auto display-block'
+                                webkitAnimation: '',
+                                classes: 'margin-auto display-block',
                             })}
                             <div className="tut-clock-label">
                                 <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
@@ -181,7 +186,8 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 label: 'w2',
                                 bgc: 'rgba(24, 205, 250, 0.904)',
                                 animation: '',
-                                classes: 'margin-auto display-block'
+                                webkitAnimation: '',
+                                classes: 'margin-auto display-block',
                             })}
                             <div className="tut-clock-label">
                                 <span style={{color: "#f1ef43", marginLeft: "10px"}}>clock: </span>
@@ -215,6 +221,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 label: 'w1',
                                 bgc: 'rgba(250, 235, 24, 0.904)',
                                 animation: '',
+                                webkitAnimation: '',
                                 classes: 'margin-auto display-block'
                             })}
                             <div className="tut-clock-label">
@@ -571,22 +578,48 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
             // showcase 1
             (document.styleSheets[0] as any).insertRule(
                 `@keyframes s1 {
+                    0% { transform: translate(0, 0); }
                     25% { transform: translate(${w1ToEnd}px, 0); }
                     100% { transform: translate(${w1ToEnd}px, 0); }
+                }`
+            );
+
+            (document.styleSheets[0] as any).insertRule(
+                `@-webkit-keyframes wk-s1 {
+                    0% { -webkit-transform: translate(0, 0); }
+                    25% { -webkit-transform: translate(${w1ToEnd}px, 0); }
+                    100% { -webkit-transform: translate(${w1ToEnd}px, 0); }
                 }`
             );
 
             //showcase 2
             (document.styleSheets[0] as any).insertRule(
                 `@keyframes s2w1 {
+                    0% { transform: translate(0, 0); }
                     25% { transform: translate(${w1ToEnd - msgWidth}px, 0); }
                     100% { transform: translate(${w1ToEnd - msgWidth}px, 0); }
                 }`
             );
             (document.styleSheets[0] as any).insertRule(
                 `@keyframes s2w2 {
+                    0% { transform: translate(0, 0); }
                     17% { transform: translate(${w2ToEnd}px, 0); }
                     100% { transform: translate(${w2ToEnd}px, 0); }
+                }`
+            );
+
+            (document.styleSheets[0] as any).insertRule(
+                `@-webkit-keyframes wk-s2w1 {
+                    0% { -webkit-transform: translate(0, 0); }
+                    25% { -webkit-transform: translate(${w1ToEnd - msgWidth}px, 0); }
+                    100% { -webkit-transform: translate(${w1ToEnd - msgWidth}px, 0); }
+                }`
+            );
+            (document.styleSheets[0] as any).insertRule(
+                `@-webkit-keyframes wk-s2w2 {
+                    0% { -webkit-transform: translate(0, 0); }
+                    17% { -webkit-transform: translate(${w2ToEnd}px, 0); }
+                    100% { -webkit-transform: translate(${w2ToEnd}px, 0); }
                 }`
             );
 
@@ -595,31 +628,67 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
             // node 2 and 3 were in the way so their final trans is msgWidth * 3 or 4
             (document.styleSheets[0] as any).insertRule(
                 `@keyframes s3w2 {
+                    0%  { transform: translate(${(msgWidth) * 2}px, 0); opacity: 1; }
                     30%  { transform: translate(${(msgWidth) * 2}px, 0); opacity: 1; }
                     40%  { transform: translate(${(msgWidth) * 3}px, 0); opacity: 0; }
                     100% { transform: translate(${(msgWidth) * 3}px, 0); opacity: 0; }
                 }`
             );
-
             (document.styleSheets[0] as any).insertRule(
                 `@keyframes s3n1 {
+                    0%  { opacity: 1; }
                     30%  { opacity: 1; }
                     40%  { opacity: 0; }
                     100% { opacity: 0; }
                 }`
             );
-
             (document.styleSheets[0] as any).insertRule(
                 `@keyframes s3w1 {
+                    0%  { transform: translate(${(msgWidth) * 2}px, 0); opacity: 1; }
                     50%  { transform: translate(${(msgWidth) * 2}px, 0); opacity: 1; }
                     60%  { opacity: 1; }
                     70%  { transform: translate(${(msgWidth) * 4}px, 0); opacity: 0; }
                     100% { transform: translate(${(msgWidth) * 4}px, 0); opacity: 0; }
                 }`
             );
-
             (document.styleSheets[0] as any).insertRule(
                 `@keyframes s3n2 {
+                    0%  { opacity: 1; }
+                    60%  { opacity: 1; }
+                    70%  { opacity: 0; }
+                    100% { opacity: 0; }
+                }`
+            );
+
+
+            (document.styleSheets[0] as any).insertRule(
+                `@-webkit-keyframes wk-s3w2 {
+                    0%  { -webkit-transform: translate(${(msgWidth) * 2}px, 0); opacity: 1; }
+                    30%  { -webkit-transform: translate(${(msgWidth) * 2}px, 0); opacity: 1; }
+                    40%  { -webkit-transform: translate(${(msgWidth) * 3}px, 0); opacity: 0; }
+                    100% { -webkit-transform: translate(${(msgWidth) * 3}px, 0); opacity: 0; }
+                }`
+            );
+            (document.styleSheets[0] as any).insertRule(
+                `@-webkit-keyframes wk-s3n1 {
+                    0%  { opacity: 1; }
+                    30%  { opacity: 1; }
+                    40%  { opacity: 0; }
+                    100% { opacity: 0; }
+                }`
+            );
+            (document.styleSheets[0] as any).insertRule(
+                `@-webkit-keyframes wk-s3w1 {
+                    0%  { -webkit-transform: translate(${(msgWidth) * 2}px, 0); opacity: 1; }
+                    50%  { -webkit-transform: translate(${(msgWidth) * 2}px, 0); opacity: 1; }
+                    60%  { opacity: 1; }
+                    70%  { -webkit-transform: translate(${(msgWidth) * 4}px, 0); opacity: 0; }
+                    100% { -webkit-transform: translate(${(msgWidth) * 4}px, 0); opacity: 0; }
+                }`
+            );
+            (document.styleSheets[0] as any).insertRule(
+                `@-webkit-keyframes wk-s3n2 {
+                    0%  { opacity: 1; }
                     60%  { opacity: 1; }
                     70%  { opacity: 0; }
                     100% { opacity: 0; }
