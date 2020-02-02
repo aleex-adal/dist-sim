@@ -40,13 +40,19 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
         label: string,
         bgc: string,
         animation: string,
-        webkitAnimation: string,
+        webkitAnimation: {name: string, duration: string, func: string, delay: string, repeat: string},
         classes?: string
     }) => {
         return <div 
             id        ={o.id}
             className ={o.classes ? 'msg-showcase ' + o.classes : 'msg-showcase'}
-            style     ={{backgroundColor: o.bgc, animation: o.animation, WebkitAnimation: o.webkitAnimation, }}
+            style     ={{backgroundColor: o.bgc, animation: o.animation,
+                WebkitAnimationName: o.webkitAnimation.name,
+                WebkitAnimationDuration: o.webkitAnimation.duration,
+                WebkitAnimationTimingFunction: o.webkitAnimation.func,
+                WebkitAnimationDelay: o.webkitAnimation.delay,
+                WebkitAnimationIterationCount: o.webkitAnimation.repeat,
+             }}
         >
             {o.label}
         </div>  
@@ -100,14 +106,14 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
                             animation: 's1 10s linear 8s infinite',
-                            webkitAnimation: 'wk-s1 10s linear 8s infinite',
+                            webkitAnimation: {name: 'wk-s1', duration: '10s', func: 'linear', delay: '8s', repeat: 'infinite'},
                         })}
                         {getMsgShowcase({
                             id: 's1w1',
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
                             animation: 's1 10s linear 8s infinite',
-                            webkitAnimation: 'wk-s1 10s linear 8s infinite',
+                            webkitAnimation: {name: 'wk-s1', duration: '10s', func: 'linear', delay: '8s', repeat: 'infinite'},
                         })}
                         <div id="s1n1" className="dot-showcase">1</div>
                     </div>
@@ -120,14 +126,14 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
                             animation: 's2w2 10s linear 14s infinite',
-                            webkitAnimation: 'wk-s2w2 10s linear 14s infinite',
+                            webkitAnimation: {name: 'wk-s2w2', duration: '10s', func: 'linear', delay: '14s', repeat: 'infinite'},
                         })}
                         {getMsgShowcase({
                             id: 's2w1',
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
                             animation: 's2w1 10s linear 14s infinite',
-                            webkitAnimation: 'wk-s2w1 10s linear 14s infinite',
+                            webkitAnimation: {name: 'wk-s2w1', duration: '10s', func: 'linear', delay: '14s', repeat: 'infinite'},
                         })}
                         <div id="s2n1" className="dot-showcase">1</div>
                     </div>
@@ -141,7 +147,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
                             animation: 's3w1 10s linear 18s infinite',
-                            webkitAnimation: 'wk-s3w1 10s linear 18s infinite',
+                            webkitAnimation: {name: 'wk-s3w1', duration: '10s', func: 'linear', delay: '18s', repeat: 'infinite'},
                             classes: 'msg-showcase-3 s3n1',
                         })}
                         {getMsgShowcase({
@@ -149,7 +155,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
                             animation: 's3w2 10s linear 18s infinite',
-                            webkitAnimation: 'wk-s3w2 10s linear 18s infinite',
+                            webkitAnimation: {name: 'wk-s3w1', duration: '10s', func: 'linear', delay: '18s', repeat: 'infinite'},
                             classes: 'msg-showcase-3 s3n1',
                         })}
                         <div id="s3n3" className="dot-showcase" style={{backgroundColor: 'rgba(250, 24, 24, 0.904)', color: '#fff'}}>w1</div>
@@ -169,7 +175,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 label: 'w1',
                                 bgc: 'rgba(250, 235, 24, 0.904)',
                                 animation: '',
-                                webkitAnimation: '',
+                                webkitAnimation: {name: '', duration: '', func: '', delay: '', repeat: ''},
                                 classes: 'margin-auto display-block',
                             })}
                             <div className="tut-clock-label">
@@ -186,7 +192,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 label: 'w2',
                                 bgc: 'rgba(24, 205, 250, 0.904)',
                                 animation: '',
-                                webkitAnimation: '',
+                                webkitAnimation: {name: '', duration: '', func: '', delay: '', repeat: ''},
                                 classes: 'margin-auto display-block',
                             })}
                             <div className="tut-clock-label">
@@ -221,7 +227,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 label: 'w1',
                                 bgc: 'rgba(250, 235, 24, 0.904)',
                                 animation: '',
-                                webkitAnimation: '',
+                                webkitAnimation: {name: '', duration: '', func: '', delay: '', repeat: ''},
                                 classes: 'margin-auto display-block'
                             })}
                             <div className="tut-clock-label">
