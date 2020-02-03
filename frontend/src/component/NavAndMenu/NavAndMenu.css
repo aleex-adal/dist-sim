@@ -269,3 +269,7 @@ nav {
   color: #f1f5fd;
   font-family: 'Inconsolata', monospace;
 }
+
+.red {
+  background-color: red;
+}

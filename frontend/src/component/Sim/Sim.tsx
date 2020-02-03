@@ -178,10 +178,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 	};
 
 	const insertAnimations = (numNodes: number) => {
-		const subtractBy = document.getElementById('0').getBoundingClientRect().top;
-		const msgWidth = parseInt(getComputedStyle(document.getElementById('0')).width);
-		var width = document.getElementById("sim-wrapper").offsetWidth;
-		var height = document.getElementById("sim-wrapper").offsetHeight;
 
 		for (let i = 0; i < numNodes; i++) {
 			for (let j = 0; j < numNodes; j++) {
@@ -191,21 +187,11 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 
 				let x1, x2, y1, y2;
 				
-					x1 = document.getElementById(i.toString()).getBoundingClientRect().left + window.pageXOffset;
-					y1 = document.getElementById(i.toString()).getBoundingClientRect().top + window.pageYOffset;
-	
-					x2 = document.getElementById(j.toString()).getBoundingClientRect().left + window.pageXOffset;
-					y2 = document.getElementById(j.toString()).getBoundingClientRect().top + window.pageYOffset;
-				
-				
-				// // going right or left
-				// if (x2 - x1 > 0)      { x1 += Math.round(msgWidth/4); x2 -= Math.round(msgWidth/4); }				
-				// else if (x2 - x1 < 0) { x1 -= Math.round(msgWidth/4); x2 += Math.round(msgWidth/4); }
+				x1 = document.getElementById(i.toString()).getBoundingClientRect().left + window.pageXOffset;
+				y1 = document.getElementById(i.toString()).getBoundingClientRect().top + window.pageYOffset;
 
-				// // going down or up
-				// if (y2 - y1 > 0)      { y1 += Math.round(msgWidth/4); y2 -= Math.round(msgWidth/4); }
-				// else if (y2 - y1 < 0) { y1 -= Math.round(msgWidth/4); y2 += Math.round(msgWidth/4); }
-
+				x2 = document.getElementById(j.toString()).getBoundingClientRect().left + window.pageXOffset;
+				y2 = document.getElementById(j.toString()).getBoundingClientRect().top + window.pageYOffset;
 
 				(document.styleSheets[0] as any).insertRule(
 					`@keyframes id${i}to${j} { from{ left:${x1}px; top:${y1}px   } to{ left:${x2}px; top:${y2}px } }`
@@ -322,10 +308,26 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			div.style.lineHeight = div.offsetHeight.toString() + 'px';
 
 			if (pauseFirstAnimations) {
-				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay}s linear forwards paused`;
+				
+				// delay a bit and use webkit so things work on ios/mac
+				// incidentally these delays also give each message a short 200ms pause between nodes
+				// i think this looks nice, luckily...
+				setTimeout( () => {
+					div.style.webkitAnimationName = `id${thisMsg.nodeId}to${nextMsg.nodeId}`;
+					div.style.webkitAnimationDuration = `${delay}s`;
+					div.style.webkitAnimationTimingFunction = 'linear';
+					div.style.webkitAnimationDirection = 'forwards';
+					div.style.webkitAnimationPlayState = 'paused';
+				}, 100);
 
 			} else {
-				div.style.animation = `id${thisMsg.nodeId}to${nextMsg.nodeId} ${delay}s linear forwards`;
+
+				setTimeout( () => {
+					div.style.webkitAnimationName = `id${thisMsg.nodeId}to${nextMsg.nodeId}`;
+					div.style.webkitAnimationDuration = `${delay}s`;
+					div.style.webkitAnimationTimingFunction = 'linear';
+					div.style.webkitAnimationDirection = 'forwards';
+				}, 100);
 			}
 
 			div.addEventListener('animationend', () => {
@@ -352,7 +354,6 @@ const Sim: React.FunctionComponent<SimProps> = (props) => {
 			// emit apiResponse progression (separate from instruction progression)
 			props.setApiResponse(JSON.parse(JSON.stringify(apiResponse)));
 
-			
 			return executeApiResponse(apiResponse, next);
 		}
 	}

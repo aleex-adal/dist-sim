@@ -12,7 +12,14 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
     const [ menuClasses, setMenuClasses ] = useState(['menu', 'overlay']);
     const [ menuContents, setMenuContents ] = useState( 'initial-contents' );
 
-    const initialContents = (
+    const initialContents = (<>
+        <svg 
+          onClick={() => setMenuClasses(['menu', 'overlay'])}
+          id="initial-close" className="node-info-close" viewBox="0 0 20 20"
+          style={{left: ((window.innerWidth * 0.6) - 45) + 'px'}}
+          >
+          <path fill="#282c34" d="M10.185,1.417c-4.741,0-8.583,3.842-8.583,8.583c0,4.74,3.842,8.582,8.583,8.582S18.768,14.74,18.768,10C18.768,5.259,14.926,1.417,10.185,1.417 M10.185,17.68c-4.235,0-7.679-3.445-7.679-7.68c0-4.235,3.444-7.679,7.679-7.679S17.864,5.765,17.864,10C17.864,14.234,14.42,17.68,10.185,17.68 M10.824,10l2.842-2.844c0.178-0.176,0.178-0.46,0-0.637c-0.177-0.178-0.461-0.178-0.637,0l-2.844,2.841L7.341,6.52c-0.176-0.178-0.46-0.178-0.637,0c-0.178,0.176-0.178,0.461,0,0.637L9.546,10l-2.841,2.844c-0.178,0.176-0.178,0.461,0,0.637c0.178,0.178,0.459,0.178,0.637,0l2.844-2.841l2.844,2.841c0.178,0.178,0.459,0.178,0.637,0c0.178-0.176,0.178-0.461,0-0.637L10.824,10z"></path>
+        </svg>
         <ul id="initial-contents" className='initial-contents'>
             <li id='tutorial-li'
                 onClick={() => {
@@ -33,30 +40,62 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                 setMenuClasses(['menu menu-full', 'overlay overlay-active']);
             }}><h2>motivation</h2></li>
         </ul>
-    );
+    </>);
 
     const getMsgShowcase = (o: {
         id: string,
         label: string,
         bgc: string,
-        animation: string,
         webkitAnimation: {name: string, duration: string, func: string, delay: string, repeat: string},
         classes?: string
     }) => {
+
+        setTimeout( () => {
+            if (document.getElementById(o.id) && o.webkitAnimation.name.length > 0) {
+                const msg = document.getElementById(o.id);
+                msg.style.webkitAnimationName = o.webkitAnimation.name;
+                msg.style.webkitAnimationDuration = o.webkitAnimation.duration;
+                msg.style.webkitAnimationTimingFunction = o.webkitAnimation.func;
+                msg.style.webkitAnimationDelay = o.webkitAnimation.delay;
+                msg.style.webkitAnimationIterationCount = o.webkitAnimation.repeat;
+            }
+        }, 100);
+        
         return <div 
             id        ={o.id}
-            className ={o.classes ? 'msg-showcase ' + o.classes : 'msg-showcase'}
-            style     ={{backgroundColor: o.bgc, animation: o.animation,
-                WebkitAnimationName: o.webkitAnimation.name,
-                WebkitAnimationDuration: o.webkitAnimation.duration,
-                WebkitAnimationTimingFunction: o.webkitAnimation.func,
-                WebkitAnimationDelay: o.webkitAnimation.delay,
-                WebkitAnimationIterationCount: o.webkitAnimation.repeat,
-             }}
+            className ={o.classes ? `msg-showcase ` + o.classes : `msg-showcase `}
+            style     ={{backgroundColor: o.bgc}}
         >
             {o.label}
         </div>  
     };
+
+    const returnDotsWithAnimationDelay = () => {
+
+        setTimeout( () => {
+            if (document.getElementById('s3n2') && document.getElementById('s3n1')) {
+                const n2 = document.getElementById('s3n2');
+                const n1 = document.getElementById('s3n1');
+
+                n2.style.webkitAnimationName = 'wk-s3n2';
+                n2.style.webkitAnimationDuration = '10s';
+                n2.style.webkitAnimationTimingFunction = 'linear';
+                n2.style.webkitAnimationDelay = '18s';
+                n2.style.webkitAnimationIterationCount = 'infinite';
+
+                n1.style.webkitAnimationName = 'wk-s3n1';
+                n1.style.webkitAnimationDuration = '10s';
+                n1.style.webkitAnimationTimingFunction = 'linear';
+                n1.style.webkitAnimationDelay = '18s';
+                n1.style.webkitAnimationIterationCount = 'infinite';
+            }
+        }, 100);
+
+        return (<>
+            <div id="s3n2" className="dot-showcase s3n2" style={{backgroundColor: 'rgba(24, 205, 250, 0.904)'}}>w2</div>
+            <div id="s3n1" className="dot-showcase s3n1" >1</div>
+        </>);
+    }
 
     const backToMenuBtn = (
         <span 
@@ -105,14 +144,12 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             id: 's1w2',
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
-                            animation: 's1 10s linear 8s infinite',
                             webkitAnimation: {name: 'wk-s1', duration: '10s', func: 'linear', delay: '8s', repeat: 'infinite'},
                         })}
                         {getMsgShowcase({
                             id: 's1w1',
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
-                            animation: 's1 10s linear 8s infinite',
                             webkitAnimation: {name: 'wk-s1', duration: '10s', func: 'linear', delay: '8s', repeat: 'infinite'},
                         })}
                         <div id="s1n1" className="dot-showcase">1</div>
@@ -125,14 +162,12 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             id: 's2w2',
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
-                            animation: 's2w2 10s linear 14s infinite',
                             webkitAnimation: {name: 'wk-s2w2', duration: '10s', func: 'linear', delay: '14s', repeat: 'infinite'},
                         })}
                         {getMsgShowcase({
                             id: 's2w1',
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
-                            animation: 's2w1 10s linear 14s infinite',
                             webkitAnimation: {name: 'wk-s2w1', duration: '10s', func: 'linear', delay: '14s', repeat: 'infinite'},
                         })}
                         <div id="s2n1" className="dot-showcase">1</div>
@@ -146,7 +181,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             id: 's3w1',
                             label: 'w1',
                             bgc: 'rgba(250, 235, 24, 0.904)',
-                            animation: 's3w1 10s linear 18s infinite',
                             webkitAnimation: {name: 'wk-s3w1', duration: '10s', func: 'linear', delay: '18s', repeat: 'infinite'},
                             classes: 'msg-showcase-3 s3n1',
                         })}
@@ -154,13 +188,11 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                             id: 's3w2',
                             label: 'w2',
                             bgc: 'rgba(24, 205, 250, 0.904)',
-                            animation: 's3w2 10s linear 18s infinite',
-                            webkitAnimation: {name: 'wk-s3w1', duration: '10s', func: 'linear', delay: '18s', repeat: 'infinite'},
+                            webkitAnimation: {name: 'wk-s3w2', duration: '10s', func: 'linear', delay: '18s', repeat: 'infinite'},
                             classes: 'msg-showcase-3 s3n1',
                         })}
                         <div id="s3n3" className="dot-showcase" style={{backgroundColor: 'rgba(250, 24, 24, 0.904)', color: '#fff'}}>w1</div>
-                        <div id="s3n2" className="dot-showcase s3n2" style={{backgroundColor: 'rgba(24, 205, 250, 0.904)', animation: 's3n2 10s linear 18s infinite'}}>w2</div>
-                        <div id="s3n1" className="dot-showcase s3n1" style={{animation: 's3n1 10s linear 18s infinite'}}>1</div>
+                        {returnDotsWithAnimationDelay()}
                     </div>
                     <p style={{marginTop: '15px'}}>Seems backwards right? w2 was sent most recently so the database should end up with w2's value.</p>
                 </li>
@@ -174,7 +206,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 id: 's4w1',
                                 label: 'w1',
                                 bgc: 'rgba(250, 235, 24, 0.904)',
-                                animation: '',
                                 webkitAnimation: {name: '', duration: '', func: '', delay: '', repeat: ''},
                                 classes: 'margin-auto display-block',
                             })}
@@ -191,7 +222,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 id: 's4w2',
                                 label: 'w2',
                                 bgc: 'rgba(24, 205, 250, 0.904)',
-                                animation: '',
                                 webkitAnimation: {name: '', duration: '', func: '', delay: '', repeat: ''},
                                 classes: 'margin-auto display-block',
                             })}
@@ -226,7 +256,6 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                                 id: 's4w1',
                                 label: 'w1',
                                 bgc: 'rgba(250, 235, 24, 0.904)',
-                                animation: '',
                                 webkitAnimation: {name: '', duration: '', func: '', delay: '', repeat: ''},
                                 classes: 'margin-auto display-block'
                             })}
@@ -257,10 +286,22 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                     <p>To see logical clocks in action, enter these commands into the console on the main page: </p>
                     <div className="tut-clock-label" style={{paddingLeft: '10px', paddingRight: '10px', textAlign: 'left'}}>
                         <span style={{color: '#f1f5fd', display: 'block', marginBottom: '5px'}}>
-                            {'node 0 update item 15 {"fruit": "apple"} delay 5'}
+                            <span style={{color: '#f1ef43'}}>node 0 </span>
+                            <span style={{color: '#18cdfa'}}>update </span> 
+                            item 15 
+                            <span style={{color: '#f0d976'}}>{' {'}</span>
+                            "fruit": "strawberry"
+                            <span style={{color: '#f0d976'}}>{'} '}</span>
+                            <span style={{color: 'rgb(255, 153, 128)'}}>delay 5</span>
                         </span>
+                        <br></br>
                         <span style={{color: '#f1f5fd', display: 'block'}}>
-                            {'node 0 update item 15 {"fruit": "kiwi", "secondEdit":"true"}'}
+                            <span style={{color: '#f1ef43'}}>node 0 </span>
+                            <span style={{color: '#18cdfa'}}>update </span> 
+                            item 15 
+                            <span style={{color: '#f0d976'}}>{' {'}</span>
+                            "fruit": "secondFruit"
+                            <span style={{color: '#f0d976'}}>{'} '}</span>
                         </span>
                     </div>
                     <p style={{marginTop: '15px'}}>To learn what else you can do with this database simulation, 
@@ -534,6 +575,8 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
                     <p>    
                         --- From a visual learner, supporting other visual learners. Those engineering textbooks sure aren't.
                     </p>
+                    <h3 style={{margin: '0'}}><a target='_blank' href='https://github.com/aleex-adal/dist-sim'>View the source code</a></h3>
+                    <h3 style={{margin: '0'}}><a target='_blank' href='https://github.com/aleex-adal/dist-sim'>Read the Medium article (coming soon)</a></h3>
                 </li>
             </ul>
         </div>
@@ -582,6 +625,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props) => {
             - msgWidth;
             
             // showcase 1
+            // technically i dont need the non-prefixed versions since im just using the webkit versions now
             (document.styleSheets[0] as any).insertRule(
                 `@keyframes s1 {
                     0% { transform: translate(0, 0); }
